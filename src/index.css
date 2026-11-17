@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased min-h-screen selection:bg-teal-500 selection:text-white;
+  }
+}
+
+/* Custom transitions and premium glow */
+.premium-glow {
+  box-shadow: 0 0 40px -10px rgba(20, 184, 166, 0.15);
+}
+
+.premium-card {
+  @apply bg-white border border-slate-100/80 rounded-2xl p-6 md:p-8 transition-all duration-300 hover:border-teal-500/20 hover:shadow-lg hover:shadow-slate-100;
+}
+
+/* Hide scrollbar for clean mobile horizontal tab scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

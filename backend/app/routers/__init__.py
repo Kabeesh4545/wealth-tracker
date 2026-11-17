@@ -1,0 +1,15 @@
+from app.routers.auth import router as auth_router
+from app.routers.financial_profile import router as profile_router
+from app.routers.loans import router as loans_router
+from app.routers.planned_expenses import router as planned_expenses_router
+from app.routers.expenses import router as expenses_router
+from app.routers.savings import router as savings_router
+from app.routers.investments import router as investments_router
+from app.routers.goals import router as goals_router
+from app.routers.goal_contributions import router as goal_contributions_router
+from app.routers.investment_profile import router as investment_profile_router
+from app.routers.local_costs import router as local_costs_router
+from app.routers.financial_planning import router as planning_router
+from app.routers.investment_allocation import router as investment_allocation_router
+from app.routers.financial_simulator import router as financial_simulator_router
+from app.routers.financial_assistant import router as financial_assistant_router

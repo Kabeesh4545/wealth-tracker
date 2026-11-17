@@ -1,0 +1,1 @@
+from app.services.investment_recommendation.engine import get_investment_recommendations

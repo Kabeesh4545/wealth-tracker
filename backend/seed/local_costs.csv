@@ -1,0 +1,107 @@
+city,state,country,category,subcategory,min_cost,typical_cost,max_cost,currency,unit,household_size_min,household_size_max,housing_type,source,source_url,reference_month,last_updated,data_confidence
+Coimbatore,Tamil Nadu,India,Housing,Rent,5000.0,7000.0,9000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Housing,Rent,9000.0,12000.0,15000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Housing,Rent,15000.0,18000.0,22000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Housing,Maintenance,1000.0,1500.0,2500.0,INR,monthly,1,99,,Derived estimate,Internal calculations based on typical society maintenance charges,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Food & Groceries,2000.0,3000.0,4000.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Food & Groceries,3500.0,5000.0,7000.0,INR,monthly,2,2,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Food & Groceries,6000.0,8000.0,10000.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Food & Groceries,9000.0,11000.0,14000.0,INR,monthly,5,99,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Eating Outside,800.0,1500.0,2500.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Eating Outside,1500.0,2800.0,4500.0,INR,monthly,2,2,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Eating Outside,2500.0,4500.0,7500.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Food,Eating Outside,4000.0,7000.0,11000.0,INR,monthly,5,99,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Transportation,Public Transport,300.0,600.0,1000.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Transportation,Public Transport,600.0,1200.0,2000.0,INR,monthly,2,99,,Derived estimate,Scaled from single person public transport baseline,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Transportation,Fuel,2000.0,4000.0,6500.0,INR,monthly,1,99,,Derived estimate,Based on 40L monthly fuel consumption at typical local petrol rates,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Transportation,Taxi/Cab,500.0,1500.0,3000.0,INR,monthly,1,99,,Derived estimate,Based on standard cab fare aggregates in Tier-2 cities,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Transportation,Vehicle Maintenance,500.0,1000.0,2000.0,INR,monthly,1,99,,Derived estimate,Typical service and maintenance costs for 2/4 wheelers,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Utilities,Electricity,500.0,800.0,1500.0,INR,monthly,1,2,,TANGEDCO Tariff Rate,https://www.tangedco.gov.in,2026-08,2026-08-18,high
+Coimbatore,Tamil Nadu,India,Utilities,Electricity,1000.0,2000.0,3500.0,INR,monthly,3,99,,TANGEDCO Tariff Rate,https://www.tangedco.gov.in,2026-08,2026-08-18,high
+Coimbatore,Tamil Nadu,India,Utilities,Water,100.0,300.0,600.0,INR,monthly,1,99,,Coimbatore Corporation Charges,https://www.ccmc.gov.in,2026-08,2026-08-18,high
+Coimbatore,Tamil Nadu,India,Utilities,Internet,500.0,750.0,1200.0,INR,monthly,1,99,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Coimbatore,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Utilities,Mobile,300.0,600.0,1000.0,INR,monthly,1,2,,Derived estimate,Based on standard prepaid/postpaid plans for 1-2 connections,2026-08,2026-08-18,high
+Coimbatore,Tamil Nadu,India,Utilities,Mobile,600.0,1200.0,2000.0,INR,monthly,3,99,,Derived estimate,Based on standard prepaid/postpaid plans for 3+ connections,2026-08,2026-08-18,high
+Coimbatore,Tamil Nadu,India,Utilities,Gas,400.0,600.0,1000.0,INR,monthly,1,99,,Derived estimate,Monthly domestic LPG cylinder refilling cost average,2026-08,2026-08-18,high
+Coimbatore,Tamil Nadu,India,Healthcare,Healthcare,300.0,1000.0,2500.0,INR,monthly,1,2,,Derived estimate,Tier-2 city outpatient clinic visit and basic checkup ranges,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Healthcare,Healthcare,800.0,2500.0,5000.0,INR,monthly,3,99,,Derived estimate,Tier-2 city family outpatient clinic visit aggregates,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Healthcare,Medicine,200.0,800.0,2000.0,INR,monthly,1,99,,Derived estimate,Typical monthly OTC and prescription medicine averages,2026-08,2026-08-18,medium
+Coimbatore,Tamil Nadu,India,Education,Education,1000.0,3000.0,7000.0,INR,monthly,1,99,,Derived estimate,Tier-2 matriculation/CBSE primary school fee averages,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Housing,Rent,8000.0,11000.0,15000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Housing,Rent,14000.0,18000.0,24000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Housing,Rent,22000.0,28000.0,38000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Housing,Maintenance,1500.0,2500.0,4000.0,INR,monthly,1,99,,Derived estimate,Society maintenance charges average in Tier-1 cities,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Food & Groceries,3000.0,4500.0,6000.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Food & Groceries,5000.0,7500.0,10000.0,INR,monthly,2,2,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Food & Groceries,8000.0,11000.0,15000.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Food & Groceries,12000.0,16000.0,22000.0,INR,monthly,5,99,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Eating Outside,1200.0,2500.0,4500.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Eating Outside,2200.0,4500.0,8000.0,INR,monthly,2,2,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Eating Outside,3500.0,7000.0,12000.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Food,Eating Outside,6000.0,11000.0,18000.0,INR,monthly,5,99,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Transportation,Public Transport,400.0,800.0,1400.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Transportation,Public Transport,800.0,1600.0,2800.0,INR,monthly,2,99,,Derived estimate,Scaled from single person public transport baseline,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Transportation,Fuel,2500.0,4500.0,7500.0,INR,monthly,1,99,,Derived estimate,Based on 45L monthly fuel consumption at typical local petrol rates,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Transportation,Taxi/Cab,800.0,2000.0,4500.0,INR,monthly,1,99,,Derived estimate,Based on standard cab fare aggregates in Tier-1 cities,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Transportation,Vehicle Maintenance,600.0,1200.0,2500.0,INR,monthly,1,99,,Derived estimate,Typical service and maintenance costs for 2/4 wheelers,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Utilities,Electricity,600.0,1200.0,2200.0,INR,monthly,1,2,,TANGEDCO Tariff Rate,https://www.tangedco.gov.in,2026-08,2026-08-18,high
+Chennai,Tamil Nadu,India,Utilities,Electricity,1200.0,2500.0,5000.0,INR,monthly,3,99,,TANGEDCO Tariff Rate,https://www.tangedco.gov.in,2026-08,2026-08-18,high
+Chennai,Tamil Nadu,India,Utilities,Water,150.0,400.0,800.0,INR,monthly,1,99,,Metro Water Tariff,https://chennaimetrowater.tn.gov.in,2026-08,2026-08-18,high
+Chennai,Tamil Nadu,India,Utilities,Internet,600.0,850.0,1400.0,INR,monthly,1,99,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Chennai,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Utilities,Mobile,400.0,750.0,1200.0,INR,monthly,1,2,,Derived estimate,Based on standard prepaid/postpaid plans for 1-2 connections,2026-08,2026-08-18,high
+Chennai,Tamil Nadu,India,Utilities,Mobile,800.0,1500.0,2500.0,INR,monthly,3,99,,Derived estimate,Based on standard prepaid/postpaid plans for 3+ connections,2026-08,2026-08-18,high
+Chennai,Tamil Nadu,India,Utilities,Gas,400.0,650.0,1100.0,INR,monthly,1,99,,Derived estimate,Monthly domestic LPG cylinder refilling cost average,2026-08,2026-08-18,high
+Chennai,Tamil Nadu,India,Healthcare,Healthcare,400.0,1200.0,3000.0,INR,monthly,1,2,,Derived estimate,Tier-1 city outpatient clinic visit and basic checkup ranges,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Healthcare,Healthcare,1000.0,3000.0,6000.0,INR,monthly,3,99,,Derived estimate,Tier-1 city family outpatient clinic visit aggregates,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Healthcare,Medicine,300.0,1000.0,2500.0,INR,monthly,1,99,,Derived estimate,Typical monthly OTC and prescription medicine averages,2026-08,2026-08-18,medium
+Chennai,Tamil Nadu,India,Education,Education,1500.0,4000.0,10000.0,INR,monthly,1,99,,Derived estimate,Tier-1 matriculation/CBSE primary school fee averages,2026-08,2026-08-18,medium
+Bengaluru,Karnataka,India,Housing,Rent,12000.0,16000.0,22000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Bangalore,2026-08,2026-08-18,medium
+Bengaluru,Karnataka,India,Housing,Rent,2000.0,25000.0,32000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Bangalore,2026-08,2026-08-18,medium
+Bengaluru,Karnataka,India,Housing,Rent,30000.0,38000.0,50000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Bangalore,2026-08,2026-08-18,medium
+Bengaluru,Karnataka,India,Food,Food & Groceries,3500.0,5000.0,7000.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Bangalore,2026-08,2026-08-18,medium
+Bengaluru,Karnataka,India,Food,Food & Groceries,9000.0,12000.0,16000.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Bangalore,2026-08,2026-08-18,medium
+Hyderabad,Telangana,India,Housing,Rent,8000.0,10000.0,14000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Hyderabad,2026-08,2026-08-18,medium
+Hyderabad,Telangana,India,Housing,Rent,14000.0,17000.0,22000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Hyderabad,2026-08,2026-08-18,medium
+Hyderabad,Telangana,India,Housing,Rent,22000.0,26000.0,35000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Hyderabad,2026-08,2026-08-18,medium
+Hyderabad,Telangana,India,Food,Food & Groceries,2500.0,4000.0,5500.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Hyderabad,2026-08,2026-08-18,medium
+Hyderabad,Telangana,India,Food,Food & Groceries,7000.0,10000.0,13500.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Hyderabad,2026-08,2026-08-18,medium
+Mumbai,Maharashtra,India,Housing,Rent,18000.0,25000.0,35000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Mumbai,2026-08,2026-08-18,medium
+Mumbai,Maharashtra,India,Housing,Rent,32000.0,42000.0,55000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Mumbai,2026-08,2026-08-18,medium
+Mumbai,Maharashtra,India,Housing,Rent,50000.0,68000.0,90000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Mumbai,2026-08,2026-08-18,medium
+Mumbai,Maharashtra,India,Food,Food & Groceries,3500.0,5200.0,7500.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Mumbai,2026-08,2026-08-18,medium
+Mumbai,Maharashtra,India,Food,Food & Groceries,9000.0,13000.0,18000.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Mumbai,2026-08,2026-08-18,medium
+Delhi,Delhi,India,Housing,Rent,10000.0,14000.0,19000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Delhi,2026-08,2026-08-18,medium
+Delhi,Delhi,India,Housing,Rent,18000.0,23000.0,30000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Delhi,2026-08,2026-08-18,medium
+Delhi,Delhi,India,Housing,Rent,28000.0,36000.0,48000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Delhi,2026-08,2026-08-18,medium
+Delhi,Delhi,India,Food,Food & Groceries,3000.0,4800.0,6500.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Delhi,2026-08,2026-08-18,medium
+Delhi,Delhi,India,Food,Food & Groceries,8000.0,11500.0,15500.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Delhi,2026-08,2026-08-18,medium
+Pune,Maharashtra,India,Housing,Rent,9000.0,12000.0,16000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Pune,2026-08,2026-08-18,medium
+Pune,Maharashtra,India,Housing,Rent,15000.0,19000.0,25000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Pune,2026-08,2026-08-18,medium
+Pune,Maharashtra,India,Housing,Rent,24000.0,30000.0,40000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Pune,2026-08,2026-08-18,medium
+Pune,Maharashtra,India,Food,Food & Groceries,3000.0,4500.0,6000.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Pune,2026-08,2026-08-18,medium
+Pune,Maharashtra,India,Food,Food & Groceries,8000.0,11000.0,15000.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Pune,2026-08,2026-08-18,medium
+Kochi,Kerala,India,Housing,Rent,6000.0,8000.0,11000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Cochin,2026-08,2026-08-18,medium
+Kochi,Kerala,India,Housing,Rent,11000.0,14000.0,18000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Cochin,2026-08,2026-08-18,medium
+Kochi,Kerala,India,Housing,Rent,17000.0,21000.0,27000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Cochin,2026-08,2026-08-18,medium
+Kochi,Kerala,India,Food,Food & Groceries,2500.0,3800.0,5000.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Cochin,2026-08,2026-08-18,medium
+Kochi,Kerala,India,Food,Food & Groceries,7000.0,9500.0,12500.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Cochin,2026-08,2026-08-18,medium
+Madurai,Tamil Nadu,India,Housing,Rent,4500.0,6000.0,8000.0,INR,monthly,1,99,1 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Madurai,2026-08,2026-08-18,medium
+Madurai,Tamil Nadu,India,Housing,Rent,8000.0,10500.0,13000.0,INR,monthly,1,99,2 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Madurai,2026-08,2026-08-18,medium
+Madurai,Tamil Nadu,India,Housing,Rent,13000.0,16000.0,20000.0,INR,monthly,1,99,3 BHK,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Madurai,2026-08,2026-08-18,medium
+Madurai,Tamil Nadu,India,Food,Food & Groceries,2000.0,2900.0,3800.0,INR,monthly,1,1,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Madurai,2026-08,2026-08-18,medium
+Madurai,Tamil Nadu,India,Food,Food & Groceries,5500.0,7800.0,9800.0,INR,monthly,3,4,,Numbeo Database,https://www.numbeo.com/cost-of-living/in/Madurai,2026-08,2026-08-18,medium
+Salem,Tamil Nadu,India,Housing,Rent,4000.0,5500.0,7000.0,INR,monthly,1,99,1 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Salem,Tamil Nadu,India,Housing,Rent,7000.0,9000.0,12000.0,INR,monthly,1,99,2 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Salem,Tamil Nadu,India,Housing,Rent,11000.0,14000.0,18000.0,INR,monthly,1,99,3 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Salem,Tamil Nadu,India,Food,Food & Groceries,1800.0,2700.0,3500.0,INR,monthly,1,1,,Derived estimate,Salem market standard consumer price index estimates,2026-08,2026-08-18,medium
+Salem,Tamil Nadu,India,Food,Food & Groceries,5000.0,7200.0,9200.0,INR,monthly,3,4,,Derived estimate,Salem market standard consumer price index estimates,2026-08,2026-08-18,medium
+Tiruppur,Tamil Nadu,India,Housing,Rent,4500.0,6000.0,7500.0,INR,monthly,1,99,1 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Tiruppur,Tamil Nadu,India,Housing,Rent,7500.0,9500.0,12500.0,INR,monthly,1,99,2 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Tiruppur,Tamil Nadu,India,Housing,Rent,12000.0,15000.0,19500.0,INR,monthly,1,99,3 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Tiruppur,Tamil Nadu,India,Food,Food & Groceries,2000.0,2900.0,3900.0,INR,monthly,1,1,,Derived estimate,Tiruppur retail consumer price aggregates,2026-08,2026-08-18,medium
+Tiruppur,Tamil Nadu,India,Food,Food & Groceries,5500.0,7800.0,10000.0,INR,monthly,3,4,,Derived estimate,Tiruppur retail consumer price aggregates,2026-08,2026-08-18,medium
+Erode,Tamil Nadu,India,Housing,Rent,3500.0,5000.0,6500.0,INR,monthly,1,99,1 BHK,Derived estimate,Estimated based on typical Tier-3 rental averages,2026-08,2026-08-18,medium
+Erode,Tamil Nadu,India,Housing,Rent,6500.0,8500.0,11000.0,INR,monthly,1,99,2 BHK,Derived estimate,Estimated based on Erode district rental listings,2026-08,2026-08-18,medium
+Erode,Tamil Nadu,India,Housing,Rent,10000.0,13000.0,17000.0,INR,monthly,1,99,3 BHK,Derived estimate,Estimated based on Erode district rental listings,2026-08,2026-08-18,medium
+Erode,Tamil Nadu,India,Food,Food & Groceries,1800.0,2600.0,3400.0,INR,monthly,1,1,,Derived estimate,Erode local vegetable and provisions market averages,2026-08,2026-08-18,medium
+Erode,Tamil Nadu,India,Food,Food & Groceries,5000.0,7000.0,9000.0,INR,monthly,3,4,,Derived estimate,Erode local vegetable and provisions market averages,2026-08,2026-08-18,medium
