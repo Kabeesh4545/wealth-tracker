@@ -37,5 +37,6 @@ backend/*.db
 backend/*.sqlite
 *.pyc
 .pytest_cache
+cloudflared.exe
 
 
