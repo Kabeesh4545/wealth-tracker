@@ -31,7 +31,9 @@ import {
   Lock,
   LogOut,
   Mail,
-  Loader2
+  Loader2,
+  Zap,
+  KeyRound
 } from 'lucide-react';
 
 const CITIES = [
@@ -191,6 +193,9 @@ export default function App() {
   // Auth Forms
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({ fullName: '', email: '', password: '' });
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetForm, setResetForm] = useState({ email: '', newPassword: '' });
+  const [resetSuccess, setResetSuccess] = useState('');
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -385,6 +390,60 @@ export default function App() {
         }
         setAuthError(errMsg);
       }
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleQuickLogin = async () => {
+    try {
+      setAuthLoading(true);
+      setAuthError('');
+      const res = await api.post('/api/auth/quick-login');
+      const accessToken = res.data.access_token;
+      localStorage.setItem('token', accessToken);
+      setToken(accessToken);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error("Quick login failed:", err);
+      setAuthError('Quick sign in failed. Please try again or sign in with your credentials.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    const cleanEmail = resetForm.email ? resetForm.email.trim().toLowerCase() : '';
+    const cleanPwd = resetForm.newPassword ? resetForm.newPassword.trim() : '';
+    if (!cleanEmail || !cleanPwd) {
+      setAuthError('Please enter your email and a new password.');
+      return;
+    }
+    try {
+      setAuthLoading(true);
+      setAuthError('');
+      const res = await api.post('/api/auth/reset-password', {
+        email: cleanEmail,
+        new_password: cleanPwd
+      });
+      setResetSuccess(res.data.message || 'Password updated successfully!');
+      setLoginForm({ email: cleanEmail, password: cleanPwd });
+      setTimeout(() => {
+        setIsResettingPassword(false);
+        setResetSuccess('');
+      }, 1500);
+    } catch (err) {
+      console.error("Reset password failed:", err);
+      let errMsg = 'Unable to reset password. Please check your email.';
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          errMsg = err.response.data.detail;
+        } else if (Array.isArray(err.response.data.detail)) {
+          errMsg = err.response.data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+        }
+      }
+      setAuthError(errMsg);
     } finally {
       setAuthLoading(false);
     }
@@ -769,19 +828,25 @@ export default function App() {
             <p className="text-slate-500 text-sm font-semibold">Loading your financial portal...</p>
           </div>
         ) : !isAuthenticated ? (
-          /* AUTHENTICATION PORTAL (Login & Register) */
+          /* AUTHENTICATION PORTAL (Login, Register & Reset Password) */
           <div className="max-w-md w-full mx-auto bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-xl shadow-slate-100/50">
             <div className="text-center mb-6">
               <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 mx-auto mb-3 shadow-xs">
-                <Lock size={22} />
+                {isResettingPassword ? <KeyRound size={22} /> : <Lock size={22} />}
               </div>
               <h2 className="text-xl font-bold text-slate-800">
-                {isRegistering ? 'Create a New Account' : 'Sign In to Your Account'}
+                {isResettingPassword
+                  ? 'Reset Your Password'
+                  : isRegistering
+                  ? 'Create a New Account'
+                  : 'Sign In to Your Account'}
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                {isRegistering
+                {isResettingPassword
+                  ? 'Enter your email address and create a new password'
+                  : isRegistering
                   ? 'Register to build your personalized money management plan'
-                  : 'Enter your credentials to manage your financial profile'}
+                  : 'Enter your credentials or use 1-Tap Instant Sign In'}
               </p>
             </div>
 
@@ -792,7 +857,54 @@ export default function App() {
               </div>
             )}
 
-            {isRegistering ? (
+            {resetSuccess && (
+              <div className="mb-4 text-xs font-semibold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                <CheckCircle2 size={15} className="shrink-0" />
+                <span>{resetSuccess}</span>
+              </div>
+            )}
+
+            {isResettingPassword ? (
+              /* RESET PASSWORD FORM */
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <FormInput
+                  label="Registered Email Address"
+                  name="resetEmail"
+                  type="email"
+                  placeholder="717823i120@kce.ac.in"
+                  value={resetForm.email}
+                  onChange={(e) => setResetForm({ ...resetForm, email: e.target.value })}
+                  required
+                />
+                <FormInput
+                  label="New Password"
+                  name="newPassword"
+                  type="password"
+                  placeholder="Enter your new password"
+                  value={resetForm.newPassword}
+                  onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-colors text-sm"
+                >
+                  Save New Password & Sign In
+                </button>
+                <div className="text-center mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsResettingPassword(false);
+                      setAuthError('');
+                    }}
+                    className="text-teal-600 hover:text-teal-700 text-xs font-semibold cursor-pointer"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </form>
+            ) : isRegistering ? (
               /* REGISTRATION FORM */
               <form onSubmit={handleRegisterSubmit} className="space-y-4">
                 <FormInput
@@ -842,59 +954,76 @@ export default function App() {
               </form>
             ) : (
               /* LOGIN FORM */
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <FormInput
-                  label="Email Address"
-                  name="email"
-                  type="email"
-                  placeholder="demo@example.com"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                  required
-                />
-                <FormInput
-                  label="Password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  required
-                />
+              <div className="space-y-4">
+                {/* 1-Tap Instant Sign In Header Button */}
                 <button
-                  type="submit"
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-colors text-sm"
+                  type="button"
+                  onClick={handleQuickLogin}
+                  className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl cursor-pointer shadow-lg shadow-teal-600/20 text-sm flex items-center justify-center gap-2 transition-all transform active:scale-[0.98]"
                 >
-                  Sign In
+                  <Zap size={16} className="text-amber-300 fill-amber-300" />
+                  <span>⚡ Instant 1-Tap Sign In (No Password Needed)</span>
                 </button>
-                <div className="pt-2 border-t border-slate-100 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginForm({
-                        email: '717823i120@kce.ac.in',
-                        password: 'Password123!'
-                      });
-                      setAuthError('');
-                    }}
-                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-xl cursor-pointer text-xs transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <span>⚡ 1-Tap Fill: 717823i120@kce.ac.in (Password123!)</span>
-                  </button>
+
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink mx-3 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+                    or enter password
+                  </span>
+                  <div className="flex-grow border-t border-slate-200"></div>
                 </div>
-                <div className="text-center mt-4">
+
+                <form onSubmit={handleLoginSubmit} className="space-y-4">
+                  <FormInput
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    placeholder="717823i120@kce.ac.in"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                    required
+                  />
+                  <FormInput
+                    label="Password"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                    required
+                  />
                   <button
-                    type="button"
-                    onClick={() => {
-                      setIsRegistering(true);
-                      setAuthError('');
-                    }}
-                    className="text-teal-600 hover:text-teal-700 text-xs font-semibold cursor-pointer"
+                    type="submit"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-md transition-colors text-sm"
                   >
-                    Don't have an account? Register
+                    Sign In with Password
                   </button>
-                </div>
-              </form>
+
+                  <div className="flex items-center justify-between pt-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsResettingPassword(true);
+                        setResetForm({ email: loginForm.email || '717823i120@kce.ac.in', newPassword: '' });
+                        setAuthError('');
+                      }}
+                      className="text-slate-500 hover:text-teal-600 font-medium cursor-pointer"
+                    >
+                      Forgot / Reset Password?
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegistering(true);
+                        setAuthError('');
+                      }}
+                      className="text-teal-600 hover:text-teal-700 font-semibold cursor-pointer"
+                    >
+                      New Account? Register
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
           </div>
         ) : view === 'plan-ready' ? (

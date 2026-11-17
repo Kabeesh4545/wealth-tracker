@@ -28,3 +28,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[str] = None
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+    new_password: str
