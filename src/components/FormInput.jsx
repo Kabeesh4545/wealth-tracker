@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const FormInput = ({
   label,
@@ -15,7 +16,10 @@ export const FormInput = ({
   min,
   max,
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
   const inputId = `input-${name}`;
+  const isPassword = type === 'password';
+  const effectiveType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
   const baseInputClasses = `w-full px-4 py-2.5 rounded-xl border bg-white text-slate-800 outline-none transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 ${
     error ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20' : 'border-slate-200'
@@ -59,22 +63,36 @@ export const FormInput = ({
         ) : (
           <input
             id={inputId}
-            type={type}
+            type={effectiveType}
             name={name}
             value={value}
             onChange={onChange}
             placeholder={placeholder}
             min={min}
             max={max}
-            className={`${baseInputClasses} ${prefix ? 'pl-9' : ''} ${suffix ? 'pr-9' : ''}`}
+            autoCapitalize={type === 'email' || isPassword ? 'none' : undefined}
+            autoCorrect={type === 'email' || isPassword ? 'off' : undefined}
+            spellCheck={type === 'email' || isPassword ? false : undefined}
+            inputMode={type === 'email' ? 'email' : undefined}
+            className={`${baseInputClasses} ${prefix ? 'pl-9' : ''} ${isPassword ? 'pr-11' : suffix ? 'pr-9' : ''}`}
           />
         )}
 
-        {suffix && (
+        {isPassword ? (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
+            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        ) : suffix ? (
           <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
             <span className="text-slate-400 text-sm font-medium">{suffix}</span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {error && <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>}

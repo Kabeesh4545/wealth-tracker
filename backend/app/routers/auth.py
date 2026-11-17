@@ -34,13 +34,20 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Enforce rate limit check
+    # Enforce rate limit check with real client IP support
     force = request.headers.get("X-Test-Rate-Limit") == "true"
-    login_limiter.check(request.client.host, force=force)
+    forwarded = request.headers.get("X-Forwarded-For")
+    first_forwarded = forwarded.split(",")[0].strip() if forwarded else None
+    client_ip = (
+        request.headers.get("CF-Connecting-IP")
+        or first_forwarded
+        or (request.client.host if request.client else "127.0.0.1")
+    )
+    login_limiter.check(client_ip, force=force)
     
     email_clean = form_data.username.strip().lower()
     user = db.query(User).filter(User.email == email_clean).first()
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not verify_password(form_data.password.strip(), user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

@@ -286,7 +286,10 @@ export default function App() {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    if (!loginForm.email || !loginForm.password) {
+    const cleanEmail = loginForm.email ? loginForm.email.trim().toLowerCase() : '';
+    const cleanPassword = loginForm.password ? loginForm.password.trim() : '';
+
+    if (!cleanEmail || !cleanPassword) {
       setAuthError('Please fill out all fields.');
       return;
     }
@@ -296,8 +299,8 @@ export default function App() {
       setAuthError('');
       
       const formDataBody = new URLSearchParams();
-      formDataBody.append('username', loginForm.email.trim().toLowerCase());
-      formDataBody.append('password', loginForm.password);
+      formDataBody.append('username', cleanEmail);
+      formDataBody.append('password', cleanPassword);
 
       const res = await api.post('/api/auth/login', formDataBody, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -310,7 +313,14 @@ export default function App() {
       setLoginForm({ email: '', password: '' });
     } catch (err) {
       console.error("Login failed:", err);
-      const errMsg = err.response?.data?.detail || 'Unable to log in. Please check your credentials.';
+      let errMsg = 'Unable to log in. Please check your credentials.';
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          errMsg = err.response.data.detail;
+        } else if (Array.isArray(err.response.data.detail)) {
+          errMsg = err.response.data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+        }
+      }
       setAuthError(errMsg);
     } finally {
       setAuthLoading(false);
@@ -319,8 +329,11 @@ export default function App() {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    const { fullName, email, password } = registerForm;
-    if (!fullName || !email || !password) {
+    const cleanFullName = registerForm.fullName ? registerForm.fullName.trim() : '';
+    const cleanEmail = registerForm.email ? registerForm.email.trim().toLowerCase() : '';
+    const cleanPassword = registerForm.password ? registerForm.password.trim() : '';
+
+    if (!cleanFullName || !cleanEmail || !cleanPassword) {
       setAuthError('Please fill out all fields.');
       return;
     }
@@ -331,16 +344,16 @@ export default function App() {
       setAuthError('');
 
       await api.post('/api/auth/register', {
-        full_name: fullName.trim(),
-        email: email.trim().toLowerCase(),
-        password
+        full_name: cleanFullName,
+        email: cleanEmail,
+        password: cleanPassword
       });
       registered = true;
 
       // Automatically log user in after successful registration
       const formDataBody = new URLSearchParams();
-      formDataBody.append('username', email.trim().toLowerCase());
-      formDataBody.append('password', password);
+      formDataBody.append('username', cleanEmail);
+      formDataBody.append('password', cleanPassword);
 
       const res = await api.post('/api/auth/login', formDataBody, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -356,10 +369,20 @@ export default function App() {
       console.error("Registration failed:", err);
       if (registered) {
         setIsRegistering(false);
-        setLoginForm({ email: email.trim().toLowerCase(), password: '' });
-        setAuthError('Account registered successfully! Please enter your password to sign in.');
+        setLoginForm({ email: cleanEmail, password: cleanPassword });
+        setAuthError('Account registered successfully! Please click Sign In.');
       } else {
-        const errMsg = err.response?.data?.detail || 'Unable to register. Please try again.';
+        let errMsg = 'Unable to register. Please try again.';
+        if (err.response?.status === 409 || err.response?.data?.detail === 'Email already registered') {
+          errMsg = 'This email is already registered. Please switch to Sign In with your password.';
+          setLoginForm((prev) => ({ ...prev, email: cleanEmail }));
+        } else if (err.response?.data?.detail) {
+          if (typeof err.response.data.detail === 'string') {
+            errMsg = err.response.data.detail;
+          } else if (Array.isArray(err.response.data.detail)) {
+            errMsg = err.response.data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+          }
+        }
         setAuthError(errMsg);
       }
     } finally {
@@ -844,6 +867,21 @@ export default function App() {
                 >
                   Sign In
                 </button>
+                <div className="pt-2 border-t border-slate-100 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginForm({
+                        email: '717823i120@kce.ac.in',
+                        password: 'Password123!'
+                      });
+                      setAuthError('');
+                    }}
+                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-xl cursor-pointer text-xs transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span>⚡ 1-Tap Fill: 717823i120@kce.ac.in (Password123!)</span>
+                  </button>
+                </div>
                 <div className="text-center mt-4">
                   <button
                     type="button"
