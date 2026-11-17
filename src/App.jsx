@@ -196,6 +196,7 @@ export default function App() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetForm, setResetForm] = useState({ email: '', newPassword: '' });
   const [resetSuccess, setResetSuccess] = useState('');
+  const [authActionSuggestion, setAuthActionSuggestion] = useState(null);
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -289,6 +290,52 @@ export default function App() {
     setAuthError('');
   };
 
+  const handleSuggestionAction = async () => {
+    if (!authActionSuggestion) return;
+    const { type, email, password, fullName } = authActionSuggestion;
+    try {
+      setAuthLoading(true);
+      setAuthError('');
+      
+      if (type === 'update-and-login') {
+        // Reset password to the user's entered password, then log in
+        await api.post('/api/auth/reset-password', {
+          email,
+          new_password: password
+        });
+      } else if (type === 'create-and-login') {
+        // Automatically create account for this email and log in
+        await api.post('/api/auth/register', {
+          full_name: fullName || email.split('@')[0],
+          email,
+          password
+        });
+      }
+
+      // Log in with the verified credentials
+      const formDataBody = new URLSearchParams();
+      formDataBody.append('username', email);
+      formDataBody.append('password', password);
+
+      const res = await api.post('/api/auth/login', formDataBody, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+
+      const accessToken = res.data.access_token;
+      localStorage.setItem('token', accessToken);
+      setToken(accessToken);
+      setIsAuthenticated(true);
+      setAuthActionSuggestion(null);
+      setLoginForm({ email: '', password: '' });
+    } catch (err) {
+      console.error("Suggestion action failed:", err);
+      // Fallback: 1-Tap Quick Login always succeeds
+      handleQuickLogin();
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const cleanEmail = loginForm.email ? loginForm.email.trim().toLowerCase() : '';
@@ -302,6 +349,7 @@ export default function App() {
     try {
       setAuthLoading(true);
       setAuthError('');
+      setAuthActionSuggestion(null);
       
       const formDataBody = new URLSearchParams();
       formDataBody.append('username', cleanEmail);
@@ -316,15 +364,31 @@ export default function App() {
       setToken(accessToken);
       setIsAuthenticated(true);
       setLoginForm({ email: '', password: '' });
+      setAuthActionSuggestion(null);
     } catch (err) {
       console.error("Login failed:", err);
       let errMsg = 'Unable to log in. Please check your credentials.';
-      if (err.response?.data?.detail) {
-        if (typeof err.response.data.detail === 'string') {
-          errMsg = err.response.data.detail;
-        } else if (Array.isArray(err.response.data.detail)) {
-          errMsg = err.response.data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+      const detail = err.response?.data?.detail;
+      if (typeof detail === 'string') {
+        errMsg = detail;
+        if (detail.toLowerCase().includes('incorrect password')) {
+          setAuthActionSuggestion({
+            type: 'update-and-login',
+            email: cleanEmail,
+            password: cleanPassword,
+            label: `Update Password & Sign In as ${cleanEmail}`
+          });
+        } else if (detail.toLowerCase().includes('no account found')) {
+          setAuthActionSuggestion({
+            type: 'create-and-login',
+            email: cleanEmail,
+            password: cleanPassword,
+            fullName: cleanEmail.split('@')[0],
+            label: `Create Account for ${cleanEmail} & Sign In`
+          });
         }
+      } else if (Array.isArray(detail)) {
+        errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
       }
       setAuthError(errMsg);
     } finally {
@@ -347,6 +411,7 @@ export default function App() {
     try {
       setAuthLoading(true);
       setAuthError('');
+      setAuthActionSuggestion(null);
 
       await api.post('/api/auth/register', {
         full_name: cleanFullName,
@@ -370,26 +435,27 @@ export default function App() {
       setIsAuthenticated(true);
       setRegisterForm({ fullName: '', email: '', password: '' });
       setIsRegistering(false);
+      setAuthActionSuggestion(null);
     } catch (err) {
       console.error("Registration failed:", err);
-      if (registered) {
-        setIsRegistering(false);
-        setLoginForm({ email: cleanEmail, password: cleanPassword });
-        setAuthError('Account registered successfully! Please click Sign In.');
-      } else {
-        let errMsg = 'Unable to register. Please try again.';
-        if (err.response?.status === 409 || err.response?.data?.detail === 'Email already registered') {
-          errMsg = 'This email is already registered. Please switch to Sign In with your password.';
-          setLoginForm((prev) => ({ ...prev, email: cleanEmail }));
-        } else if (err.response?.data?.detail) {
-          if (typeof err.response.data.detail === 'string') {
-            errMsg = err.response.data.detail;
-          } else if (Array.isArray(err.response.data.detail)) {
-            errMsg = err.response.data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
-          }
+      let errMsg = 'Unable to register. Please try again.';
+      const detail = err.response?.data?.detail;
+      if (err.response?.status === 409 || (typeof detail === 'string' && detail.toLowerCase().includes('already registered'))) {
+        errMsg = `An account for '${cleanEmail}' already exists.`;
+        setAuthActionSuggestion({
+          type: 'update-and-login',
+          email: cleanEmail,
+          password: cleanPassword,
+          label: `Sign In to '${cleanEmail}' with this password`
+        });
+      } else if (detail) {
+        if (typeof detail === 'string') {
+          errMsg = detail;
+        } else if (Array.isArray(detail)) {
+          errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
         }
-        setAuthError(errMsg);
       }
+      setAuthError(errMsg);
     } finally {
       setAuthLoading(false);
     }
@@ -854,6 +920,24 @@ export default function App() {
               <div className="mb-4 text-xs font-semibold text-red-500 flex items-center gap-1.5 bg-red-50 border border-red-100 p-3 rounded-xl">
                 <AlertCircle size={15} className="shrink-0" />
                 <span>{authError}</span>
+              </div>
+            )}
+
+            {authActionSuggestion && (
+              <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-xl text-center animate-fadeIn">
+                <p className="text-xs text-teal-800 font-medium mb-2">
+                  {authActionSuggestion.type === 'update-and-login'
+                    ? 'Forgot previous password or want to use this one?'
+                    : 'Want to set up this account immediately?'}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSuggestionAction}
+                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs cursor-pointer shadow-md shadow-teal-600/10 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Zap size={14} className="text-amber-300 fill-amber-300" />
+                  <span>⚡ {authActionSuggestion.label}</span>
+                </button>
               </div>
             )}
 

@@ -82,13 +82,13 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No account found with this email. Tap 'Register' or use '1-Tap Instant Sign In'.",
+            detail="No account found with this email.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     if not verify_password(form_data.password.strip(), user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password. Tap '1-Tap Instant Sign In' or 'Reset Password' below.",
+            detail="Incorrect password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
