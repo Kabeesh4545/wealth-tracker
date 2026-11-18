@@ -32,30 +32,53 @@ def quick_login(db: Session = Depends(get_db)):
 @router.post("/reset-password")
 def reset_password(payload: PasswordResetRequest, db: Session = Depends(get_db)):
     email_clean = payload.email.strip().lower()
+    pwd_clean = payload.new_password.strip()
+    if len(pwd_clean) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Password must be at least 6 characters long."
+        )
     user = db.query(User).filter(User.email == email_clean).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No account found with this email address. Please click Register to create one."
+        user = User(
+            full_name=email_clean.split("@")[0].capitalize(),
+            email=email_clean,
+            password_hash=get_password_hash(pwd_clean)
         )
-    user.password_hash = get_password_hash(payload.new_password.strip())
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return {"message": "Account created and password set. You can now sign in."}
+
+    user.password_hash = get_password_hash(pwd_clean)
     db.commit()
     return {"message": "Password updated successfully. You can now sign in."}
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
-    # Clean email and search
     email_clean = user_in.email.strip().lower()
+    full_name_clean = user_in.full_name.strip()
+    pwd_clean = user_in.password.strip()
+    
+    if len(pwd_clean) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Password must be at least 6 characters long."
+        )
+
     db_user = db.query(User).filter(User.email == email_clean).first()
     if db_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered. Tap 'Sign In' or 'Reset Password' below."
-        )
+        # User already exists - update credentials seamlessly
+        if full_name_clean:
+            db_user.full_name = full_name_clean
+        db_user.password_hash = get_password_hash(pwd_clean)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
     
-    hashed_pwd = get_password_hash(user_in.password.strip())
+    hashed_pwd = get_password_hash(pwd_clean)
     user = User(
-        full_name=user_in.full_name.strip(),
+        full_name=full_name_clean,
         email=email_clean,
         password_hash=hashed_pwd
     )
@@ -82,13 +105,13 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No account found with this email.",
+            detail="No account found with this email. Please check your email or click Create Account.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not verify_password(form_data.password.strip(), user.password_hash):
+    if not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password.",
+            detail="Incorrect password. Please verify your password or use Forgot Password to reset.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

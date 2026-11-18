@@ -32,7 +32,6 @@ import {
   LogOut,
   Mail,
   Loader2,
-  Zap,
   KeyRound
 } from 'lucide-react';
 
@@ -196,7 +195,6 @@ export default function App() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetForm, setResetForm] = useState({ email: '', newPassword: '' });
   const [resetSuccess, setResetSuccess] = useState('');
-  const [authActionSuggestion, setAuthActionSuggestion] = useState(null);
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -290,66 +288,19 @@ export default function App() {
     setAuthError('');
   };
 
-  const handleSuggestionAction = async () => {
-    if (!authActionSuggestion) return;
-    const { type, email, password, fullName } = authActionSuggestion;
-    try {
-      setAuthLoading(true);
-      setAuthError('');
-      
-      if (type === 'update-and-login') {
-        // Reset password to the user's entered password, then log in
-        await api.post('/api/auth/reset-password', {
-          email,
-          new_password: password
-        });
-      } else if (type === 'create-and-login') {
-        // Automatically create account for this email and log in
-        await api.post('/api/auth/register', {
-          full_name: fullName || email.split('@')[0],
-          email,
-          password
-        });
-      }
-
-      // Log in with the verified credentials
-      const formDataBody = new URLSearchParams();
-      formDataBody.append('username', email);
-      formDataBody.append('password', password);
-
-      const res = await api.post('/api/auth/login', formDataBody, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-      });
-
-      const accessToken = res.data.access_token;
-      localStorage.setItem('token', accessToken);
-      setToken(accessToken);
-      setIsAuthenticated(true);
-      setAuthActionSuggestion(null);
-      setLoginForm({ email: '', password: '' });
-    } catch (err) {
-      console.error("Suggestion action failed:", err);
-      // Fallback: 1-Tap Quick Login always succeeds
-      handleQuickLogin();
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const cleanEmail = loginForm.email ? loginForm.email.trim().toLowerCase() : '';
     const cleanPassword = loginForm.password ? loginForm.password.trim() : '';
 
     if (!cleanEmail || !cleanPassword) {
-      setAuthError('Please fill out all fields.');
+      setAuthError('Please enter both your email address and password.');
       return;
     }
 
     try {
       setAuthLoading(true);
       setAuthError('');
-      setAuthActionSuggestion(null);
       
       const formDataBody = new URLSearchParams();
       formDataBody.append('username', cleanEmail);
@@ -364,29 +315,12 @@ export default function App() {
       setToken(accessToken);
       setIsAuthenticated(true);
       setLoginForm({ email: '', password: '' });
-      setAuthActionSuggestion(null);
     } catch (err) {
       console.error("Login failed:", err);
       let errMsg = 'Unable to log in. Please check your credentials.';
       const detail = err.response?.data?.detail;
       if (typeof detail === 'string') {
         errMsg = detail;
-        if (detail.toLowerCase().includes('incorrect password')) {
-          setAuthActionSuggestion({
-            type: 'update-and-login',
-            email: cleanEmail,
-            password: cleanPassword,
-            label: `Update Password & Sign In as ${cleanEmail}`
-          });
-        } else if (detail.toLowerCase().includes('no account found')) {
-          setAuthActionSuggestion({
-            type: 'create-and-login',
-            email: cleanEmail,
-            password: cleanPassword,
-            fullName: cleanEmail.split('@')[0],
-            label: `Create Account for ${cleanEmail} & Sign In`
-          });
-        }
       } else if (Array.isArray(detail)) {
         errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
       }
@@ -403,22 +337,24 @@ export default function App() {
     const cleanPassword = registerForm.password ? registerForm.password.trim() : '';
 
     if (!cleanFullName || !cleanEmail || !cleanPassword) {
-      setAuthError('Please fill out all fields.');
+      setAuthError('Please fill out all registration fields.');
       return;
     }
 
-    let registered = false;
+    if (cleanPassword.length < 6) {
+      setAuthError('Password must be at least 6 characters long.');
+      return;
+    }
+
     try {
       setAuthLoading(true);
       setAuthError('');
-      setAuthActionSuggestion(null);
 
       await api.post('/api/auth/register', {
         full_name: cleanFullName,
         email: cleanEmail,
         password: cleanPassword
       });
-      registered = true;
 
       // Automatically log user in after successful registration
       const formDataBody = new URLSearchParams();
@@ -435,44 +371,16 @@ export default function App() {
       setIsAuthenticated(true);
       setRegisterForm({ fullName: '', email: '', password: '' });
       setIsRegistering(false);
-      setAuthActionSuggestion(null);
     } catch (err) {
       console.error("Registration failed:", err);
       let errMsg = 'Unable to register. Please try again.';
       const detail = err.response?.data?.detail;
-      if (err.response?.status === 409 || (typeof detail === 'string' && detail.toLowerCase().includes('already registered'))) {
-        errMsg = `An account for '${cleanEmail}' already exists.`;
-        setAuthActionSuggestion({
-          type: 'update-and-login',
-          email: cleanEmail,
-          password: cleanPassword,
-          label: `Sign In to '${cleanEmail}' with this password`
-        });
-      } else if (detail) {
-        if (typeof detail === 'string') {
-          errMsg = detail;
-        } else if (Array.isArray(detail)) {
-          errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
-        }
+      if (typeof detail === 'string') {
+        errMsg = detail;
+      } else if (Array.isArray(detail)) {
+        errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
       }
       setAuthError(errMsg);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleQuickLogin = async () => {
-    try {
-      setAuthLoading(true);
-      setAuthError('');
-      const res = await api.post('/api/auth/quick-login');
-      const accessToken = res.data.access_token;
-      localStorage.setItem('token', accessToken);
-      setToken(accessToken);
-      setIsAuthenticated(true);
-    } catch (err) {
-      console.error("Quick login failed:", err);
-      setAuthError('Quick sign in failed. Please try again or sign in with your credentials.');
     } finally {
       setAuthLoading(false);
     }
@@ -486,6 +394,10 @@ export default function App() {
       setAuthError('Please enter your email and a new password.');
       return;
     }
+    if (cleanPwd.length < 6) {
+      setAuthError('Password must be at least 6 characters long.');
+      return;
+    }
     try {
       setAuthLoading(true);
       setAuthError('');
@@ -493,21 +405,31 @@ export default function App() {
         email: cleanEmail,
         new_password: cleanPwd
       });
-      setResetSuccess(res.data.message || 'Password updated successfully!');
-      setLoginForm({ email: cleanEmail, password: cleanPwd });
-      setTimeout(() => {
-        setIsResettingPassword(false);
-        setResetSuccess('');
-      }, 1500);
+
+      // Automatically log the user in with their new password
+      const formDataBody = new URLSearchParams();
+      formDataBody.append('username', cleanEmail);
+      formDataBody.append('password', cleanPwd);
+
+      const loginRes = await api.post('/api/auth/login', formDataBody, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+
+      const accessToken = loginRes.data.access_token;
+      localStorage.setItem('token', accessToken);
+      setToken(accessToken);
+      setIsAuthenticated(true);
+      setIsResettingPassword(false);
+      setResetForm({ email: '', newPassword: '' });
+      setResetSuccess(res.data.message || 'Password updated and signed in successfully!');
     } catch (err) {
       console.error("Reset password failed:", err);
       let errMsg = 'Unable to reset password. Please check your email.';
-      if (err.response?.data?.detail) {
-        if (typeof err.response.data.detail === 'string') {
-          errMsg = err.response.data.detail;
-        } else if (Array.isArray(err.response.data.detail)) {
-          errMsg = err.response.data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
-        }
+      const detail = err.response?.data?.detail;
+      if (typeof detail === 'string') {
+        errMsg = detail;
+      } else if (Array.isArray(detail)) {
+        errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
       }
       setAuthError(errMsg);
     } finally {
@@ -894,8 +816,9 @@ export default function App() {
             <p className="text-slate-500 text-sm font-semibold">Loading your financial portal...</p>
           </div>
         ) : !isAuthenticated ? (
-          /* AUTHENTICATION PORTAL (Login, Register & Reset Password) */
+          /* AUTHENTICATION PORTAL (Clean, Standard Login, Register & Reset Password) */
           <div className="max-w-md w-full mx-auto bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-xl shadow-slate-100/50">
+            {/* Header Icon & Title */}
             <div className="text-center mb-6">
               <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 mx-auto mb-3 shadow-xs">
                 {isResettingPassword ? <KeyRound size={22} /> : <Lock size={22} />}
@@ -904,46 +827,64 @@ export default function App() {
                 {isResettingPassword
                   ? 'Reset Your Password'
                   : isRegistering
-                  ? 'Create a New Account'
-                  : 'Sign In to Your Account'}
+                  ? 'Create an Account'
+                  : 'Welcome Back'}
               </h2>
               <p className="text-xs text-slate-400 mt-1">
                 {isResettingPassword
-                  ? 'Enter your email address and create a new password'
+                  ? 'Enter your registered email and choose a new password'
                   : isRegistering
-                  ? 'Register to build your personalized money management plan'
-                  : 'Enter your credentials or use 1-Tap Instant Sign In'}
+                  ? 'Register to plan and manage your personal finances'
+                  : 'Sign in to access your financial dashboard and plan'}
               </p>
             </div>
 
-            {authError && (
-              <div className="mb-4 text-xs font-semibold text-red-500 flex items-center gap-1.5 bg-red-50 border border-red-100 p-3 rounded-xl">
-                <AlertCircle size={15} className="shrink-0" />
-                <span>{authError}</span>
-              </div>
-            )}
-
-            {authActionSuggestion && (
-              <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-xl text-center animate-fadeIn">
-                <p className="text-xs text-teal-800 font-medium mb-2">
-                  {authActionSuggestion.type === 'update-and-login'
-                    ? 'Forgot previous password or want to use this one?'
-                    : 'Want to set up this account immediately?'}
-                </p>
+            {/* Toggle Tabs: Sign In / Create Account */}
+            {!isResettingPassword && (
+              <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
                 <button
                   type="button"
-                  onClick={handleSuggestionAction}
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs cursor-pointer shadow-md shadow-teal-600/10 transition-all flex items-center justify-center gap-1.5"
+                  onClick={() => {
+                    setIsRegistering(false);
+                    setAuthError('');
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    !isRegistering
+                      ? 'bg-white text-teal-700 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
                 >
-                  <Zap size={14} className="text-amber-300 fill-amber-300" />
-                  <span>⚡ {authActionSuggestion.label}</span>
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegistering(true);
+                    setAuthError('');
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    isRegistering
+                      ? 'bg-white text-teal-700 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Create Account
                 </button>
               </div>
             )}
 
+            {/* Error Message */}
+            {authError && (
+              <div className="mb-4 text-xs font-semibold text-red-600 flex items-center gap-2 bg-red-50 border border-red-100 p-3 rounded-xl">
+                <AlertCircle size={16} className="shrink-0" />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            {/* Success Message */}
             {resetSuccess && (
-              <div className="mb-4 text-xs font-semibold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
-                <CheckCircle2 size={15} className="shrink-0" />
+              <div className="mb-4 text-xs font-semibold text-emerald-600 flex items-center gap-2 bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                <CheckCircle2 size={16} className="shrink-0" />
                 <span>{resetSuccess}</span>
               </div>
             )}
@@ -955,7 +896,7 @@ export default function App() {
                   label="Registered Email Address"
                   name="resetEmail"
                   type="email"
-                  placeholder="717823i120@kce.ac.in"
+                  placeholder="name@example.com"
                   value={resetForm.email}
                   onChange={(e) => setResetForm({ ...resetForm, email: e.target.value })}
                   required
@@ -964,25 +905,27 @@ export default function App() {
                   label="New Password"
                   name="newPassword"
                   type="password"
-                  placeholder="Enter your new password"
+                  placeholder="Minimum 6 characters"
                   value={resetForm.newPassword}
                   onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
                   required
                 />
                 <button
                   type="submit"
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-colors text-sm"
+                  disabled={authLoading}
+                  className="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50 text-white font-semibold py-3 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-all text-sm flex items-center justify-center gap-2"
                 >
-                  Save New Password & Sign In
+                  {authLoading && <Loader2 size={16} className="animate-spin" />}
+                  <span>Save New Password & Sign In</span>
                 </button>
-                <div className="text-center mt-4">
+                <div className="text-center pt-2">
                   <button
                     type="button"
                     onClick={() => {
                       setIsResettingPassword(false);
                       setAuthError('');
                     }}
-                    className="text-teal-600 hover:text-teal-700 text-xs font-semibold cursor-pointer"
+                    className="text-teal-600 hover:text-teal-700 text-xs font-bold cursor-pointer"
                   >
                     Back to Sign In
                   </button>
@@ -994,7 +937,7 @@ export default function App() {
                 <FormInput
                   label="Full Name"
                   name="fullName"
-                  placeholder="John Doe"
+                  placeholder="e.g. Kabeesh"
                   value={registerForm.fullName}
                   onChange={(e) => setRegisterForm({ ...registerForm, fullName: e.target.value })}
                   required
@@ -1003,7 +946,7 @@ export default function App() {
                   label="Email Address"
                   name="email"
                   type="email"
-                  placeholder="demo@example.com"
+                  placeholder="name@example.com"
                   value={registerForm.email}
                   onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                   required
@@ -1012,102 +955,87 @@ export default function App() {
                   label="Password"
                   name="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Minimum 6 characters"
                   value={registerForm.password}
                   onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
                   required
                 />
                 <button
                   type="submit"
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-colors text-sm"
+                  disabled={authLoading}
+                  className="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50 text-white font-semibold py-3 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-all text-sm flex items-center justify-center gap-2"
                 >
-                  Register Account
+                  {authLoading && <Loader2 size={16} className="animate-spin" />}
+                  <span>Create Account</span>
                 </button>
-                <div className="text-center mt-4">
+                <div className="text-center pt-2 text-xs">
+                  <span className="text-slate-400">Already have an account? </span>
                   <button
                     type="button"
                     onClick={() => {
                       setIsRegistering(false);
                       setAuthError('');
                     }}
-                    className="text-teal-600 hover:text-teal-700 text-xs font-semibold cursor-pointer"
+                    className="text-teal-600 hover:text-teal-700 font-bold cursor-pointer ml-1"
                   >
-                    Already have an account? Sign In
+                    Sign In
                   </button>
                 </div>
               </form>
             ) : (
               /* LOGIN FORM */
-              <div className="space-y-4">
-                {/* 1-Tap Instant Sign In Header Button */}
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <FormInput
+                  label="Email Address"
+                  name="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                  required
+                />
+                <FormInput
+                  label="Password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  required
+                />
                 <button
-                  type="button"
-                  onClick={handleQuickLogin}
-                  className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl cursor-pointer shadow-lg shadow-teal-600/20 text-sm flex items-center justify-center gap-2 transition-all transform active:scale-[0.98]"
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50 text-white font-semibold py-3 rounded-xl cursor-pointer shadow-md shadow-teal-600/10 transition-all text-sm flex items-center justify-center gap-2"
                 >
-                  <Zap size={16} className="text-amber-300 fill-amber-300" />
-                  <span>⚡ Instant 1-Tap Sign In (No Password Needed)</span>
+                  {authLoading && <Loader2 size={16} className="animate-spin" />}
+                  <span>Sign In</span>
                 </button>
 
-                <div className="relative flex py-1 items-center">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink mx-3 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-                    or enter password
-                  </span>
-                  <div className="flex-grow border-t border-slate-200"></div>
-                </div>
-
-                <form onSubmit={handleLoginSubmit} className="space-y-4">
-                  <FormInput
-                    label="Email Address"
-                    name="email"
-                    type="email"
-                    placeholder="717823i120@kce.ac.in"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                    required
-                  />
-                  <FormInput
-                    label="Password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                    required
-                  />
+                <div className="flex items-center justify-between pt-2 text-xs">
                   <button
-                    type="submit"
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-md transition-colors text-sm"
+                    type="button"
+                    onClick={() => {
+                      setIsResettingPassword(true);
+                      setResetForm({ email: loginForm.email || '', newPassword: '' });
+                      setAuthError('');
+                    }}
+                    className="text-slate-500 hover:text-teal-600 font-medium cursor-pointer"
                   >
-                    Sign In with Password
+                    Forgot password?
                   </button>
-
-                  <div className="flex items-center justify-between pt-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsResettingPassword(true);
-                        setResetForm({ email: loginForm.email || '717823i120@kce.ac.in', newPassword: '' });
-                        setAuthError('');
-                      }}
-                      className="text-slate-500 hover:text-teal-600 font-medium cursor-pointer"
-                    >
-                      Forgot / Reset Password?
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsRegistering(true);
-                        setAuthError('');
-                      }}
-                      className="text-teal-600 hover:text-teal-700 font-semibold cursor-pointer"
-                    >
-                      New Account? Register
-                    </button>
-                  </div>
-                </form>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRegistering(true);
+                      setAuthError('');
+                    }}
+                    className="text-teal-600 hover:text-teal-700 font-bold cursor-pointer"
+                  >
+                    New user? Register
+                  </button>
+                </div>
+              </form>
             )}
           </div>
         ) : view === 'plan-ready' ? (

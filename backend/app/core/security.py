@@ -8,12 +8,17 @@ ALGORITHM = "HS256"
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"),
-            hashed_password.encode("utf-8")
-        )
+        pw_bytes = plain_password.encode("utf-8")
+        hash_bytes = hashed_password.encode("utf-8")
+        if bcrypt.checkpw(pw_bytes, hash_bytes):
+            return True
+        # Also check stripped password in case of virtual keyboard trailing space
+        stripped_bytes = plain_password.strip().encode("utf-8")
+        if stripped_bytes != pw_bytes and bcrypt.checkpw(stripped_bytes, hash_bytes):
+            return True
     except Exception:
-        return False
+        pass
+    return False
 
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()

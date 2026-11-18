@@ -13,9 +13,9 @@ class Settings(BaseSettings):
     CORS_ORIGIN_REGEX: Optional[str] = r"^(https:\/\/.*\.vercel\.app|http:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?)$"
     
     # Rate Limiting Configuration (Section 4)
-    LOGIN_RATE_LIMIT: int = 10
+    LOGIN_RATE_LIMIT: int = 120
     LOGIN_RATE_WINDOW: int = 60
-    ASSISTANT_RATE_LIMIT: int = 15
+    ASSISTANT_RATE_LIMIT: int = 60
     ASSISTANT_RATE_WINDOW: int = 60
 
     model_config = ConfigDict(
