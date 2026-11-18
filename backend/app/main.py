@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
@@ -70,6 +71,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# GZip Compression to drastically speed up asset transfers (e.g. 900KB JS -> 230KB)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 # Security and Correlation middleware (Section 10, 16, 19)
 @app.middleware("http")
 async def add_security_headers_and_correlation(request, call_next):
@@ -112,6 +116,10 @@ async def add_security_headers_and_correlation(request, call_next):
         path = request.url.path
         if any(path.startswith(p) for p in sensitive_paths):
             response.headers["Cache-Control"] = "no-store"
+        elif path.startswith("/assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path == "/" or path.endswith(".html"):
+            response.headers["Cache-Control"] = "no-cache"
             
         # Strict-Transport-Security (Section 9)
         is_production = settings.ENVIRONMENT.strip().lower() == "production"
