@@ -1,9 +1,14 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
+  // In production builds and SPA serving, ALWAYS use relative root ('') so requests
+  // automatically target the current origin (Cloudflare tunnel, local Wi-Fi IP, or localhost).
+  // This prevents mobile devices from erroneously trying to reach 'localhost:8000' on the phone.
+  if (import.meta.env.PROD) {
+    return '';
+  }
   if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  // Default to relative root so both Vite proxy (dev) and FastAPI SPA (prod) work flawlessly on any device
   return '';
 };
 

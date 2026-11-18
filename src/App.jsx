@@ -318,11 +318,15 @@ export default function App() {
     } catch (err) {
       console.error("Login failed:", err);
       let errMsg = 'Unable to log in. Please check your credentials.';
-      const detail = err.response?.data?.detail;
-      if (typeof detail === 'string') {
-        errMsg = detail;
-      } else if (Array.isArray(detail)) {
-        errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+      if (!err.response) {
+        errMsg = 'Network error: Unable to reach the server. Please check your connection.';
+      } else {
+        const detail = err.response?.data?.detail;
+        if (typeof detail === 'string') {
+          errMsg = detail;
+        } else if (Array.isArray(detail)) {
+          errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+        }
       }
       setAuthError(errMsg);
     } finally {
@@ -374,11 +378,15 @@ export default function App() {
     } catch (err) {
       console.error("Registration failed:", err);
       let errMsg = 'Unable to register. Please try again.';
-      const detail = err.response?.data?.detail;
-      if (typeof detail === 'string') {
-        errMsg = detail;
-      } else if (Array.isArray(detail)) {
-        errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+      if (!err.response) {
+        errMsg = 'Network error: Unable to reach the server. Please check your connection.';
+      } else {
+        const detail = err.response?.data?.detail;
+        if (typeof detail === 'string') {
+          errMsg = detail;
+        } else if (Array.isArray(detail)) {
+          errMsg = detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+        }
       }
       setAuthError(errMsg);
     } finally {
