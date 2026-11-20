@@ -259,28 +259,31 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
   // Category Limits Mapping for "How Much Limit for Everything"
   const categoryLimitsList = useMemo(() => {
     if (budget && budget.categories && budget.categories.length > 0) {
-      return budget.categories.map(c => {
-        const name = c.category_name || '';
-        let icon = Coffee;
-        let color = 'text-teal-600';
-        if (name.includes('Rent') || name.includes('Housing')) { icon = Home; color = 'text-indigo-600'; }
-        else if (name.includes('Food') || name.includes('Grocer')) { icon = ShoppingCart; color = 'text-emerald-600'; }
-        else if (name.includes('Electric') || name.includes('Water') || name.includes('Internet') || name.includes('Mobile')) { icon = Zap; color = 'text-amber-600'; }
-        else if (name.includes('Transport') || name.includes('Fuel')) { icon = Car; color = 'text-blue-600'; }
-        else if (name.includes('Loan') || name.includes('EMI') || name.includes('Debt')) { icon = CreditCard; color = 'text-rose-600'; }
-        else if (name.includes('Health') || name.includes('Insurance')) { icon = HeartPulse; color = 'text-rose-500'; }
-        else if (name.includes('Education')) { icon = GraduationCap; color = 'text-purple-600'; }
+      const activeCats = budget.categories.filter(c => (Number(c.recommended_limit || c.safe_limit || 0) > 0));
+      if (activeCats.length > 0) {
+        return activeCats.map(c => {
+          const name = c.category || c.category_name || '';
+          let icon = Coffee;
+          let color = 'text-teal-600';
+          if (name.includes('Rent') || name.includes('Housing')) { icon = Home; color = 'text-indigo-600'; }
+          else if (name.includes('Food') || name.includes('Grocer')) { icon = ShoppingCart; color = 'text-emerald-600'; }
+          else if (name.includes('Electric') || name.includes('Water') || name.includes('Internet') || name.includes('Mobile') || name.includes('Utility')) { icon = Zap; color = 'text-amber-600'; }
+          else if (name.includes('Transport') || name.includes('Fuel')) { icon = Car; color = 'text-blue-600'; }
+          else if (name.includes('Loan') || name.includes('EMI') || name.includes('Debt')) { icon = CreditCard; color = 'text-rose-600'; }
+          else if (name.includes('Health') || name.includes('Insurance')) { icon = HeartPulse; color = 'text-rose-500'; }
+          else if (name.includes('Education')) { icon = GraduationCap; color = 'text-purple-600'; }
 
-        return {
-          name: c.category_name,
-          group: c.category_group === 'Mandatory Essentials' ? 'Essential' : 'Flexible',
-          icon,
-          color,
-          recommended: Number(c.recommended_limit || c.current_actual || 0),
-          safe: Number(c.safe_limit || c.recommended_limit || 0),
-          hard: Number(c.hard_limit || Math.round((c.safe_limit || 0) * 1.15))
-        };
-      });
+          return {
+            name: name,
+            group: (c.category_group === 'Mandatory Essentials' || c.priority === 'TIER 1') ? 'Essential' : 'Flexible',
+            icon,
+            color,
+            recommended: Number(c.recommended_limit || c.current_actual || 0),
+            safe: Number(c.safe_limit || c.recommended_limit || 0),
+            hard: Number(c.hard_limit || Math.round((c.safe_limit || 0) * 1.15))
+          };
+        });
+      }
     }
 
     const ess = plan?.expenses?.essential || 11300;
