@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import api from '../../services/api';
 import {
   TrendingUp,
@@ -19,7 +19,14 @@ import {
   BookOpen,
   Calculator,
   ShieldCheck,
-  Zap
+  Zap,
+  Home,
+  ShoppingCart,
+  Car,
+  CreditCard,
+  Coffee,
+  HeartPulse,
+  GraduationCap
 } from 'lucide-react';
 import {
   PieChart,
@@ -36,6 +43,7 @@ import FinancialPlanningGuide from './FinancialPlanningGuide';
 export default function FinancialDashboard({ onEditProfile, onNavigate }) {
   const [plan, setPlan] = useState(null);
   const [allocation, setAllocation] = useState(null);
+  const [budget, setBudget] = useState(null);
   const [goalsProgress, setGoalsProgress] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,14 +57,16 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
     setLoading(true);
     setError('');
     try {
-      const [planRes, allocRes, goalsRes] = await Promise.all([
+      const [planRes, allocRes, goalsRes, budgetRes] = await Promise.all([
         api.get('/api/planning/monthly-plan'),
         api.get('/api/planning/investment-allocation'),
-        api.get('/api/goals/progress')
+        api.get('/api/goals/progress').catch(() => ({ data: [] })),
+        api.get('/api/planning/monthly-budget').catch(() => ({ data: null }))
       ]);
       setPlan(planRes.data);
       setAllocation(allocRes.data);
-      setGoalsProgress(goalsRes.data);
+      setGoalsProgress(goalsRes.data || []);
+      setBudget(budgetRes?.data || null);
     } catch (err) {
       console.error("Error loading dashboard data:", err);
       setError(
@@ -153,9 +163,9 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
     "Growth-Oriented": "#14b8a6" // teal-500
   };
 
-  const chartData = allocation.allocations.map(item => ({
-    name: item.category,
-    value: item.percentage,
+  const chartData = (allocation?.allocations || []).map(item => ({
+    name: item.category || item.label || 'Asset',
+    value: item.percentage || 0,
     color: allocationColors[item.category] || "#94a3b8"
   }));
 
@@ -225,6 +235,48 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
   const needsPct = planningIncome > 0 ? Math.round(((plan.expenses.essential + plan.debt.total_emi) / planningIncome) * 100) : 50;
   const wantsPct = planningIncome > 0 ? Math.round((plan.expenses.lifestyle / planningIncome) * 100) : 30;
   const savingsPct = planningIncome > 0 ? Math.max(0, 100 - needsPct - wantsPct) : 20;
+
+  // Category Limits Mapping for "How Much Limit for Everything"
+  const categoryLimitsList = useMemo(() => {
+    if (budget && budget.categories && budget.categories.length > 0) {
+      return budget.categories.map(c => {
+        const name = c.category_name || '';
+        let icon = Coffee;
+        let color = 'text-teal-600';
+        if (name.includes('Rent') || name.includes('Housing')) { icon = Home; color = 'text-indigo-600'; }
+        else if (name.includes('Food') || name.includes('Grocer')) { icon = ShoppingCart; color = 'text-emerald-600'; }
+        else if (name.includes('Electric') || name.includes('Water') || name.includes('Internet') || name.includes('Mobile')) { icon = Zap; color = 'text-amber-600'; }
+        else if (name.includes('Transport') || name.includes('Fuel')) { icon = Car; color = 'text-blue-600'; }
+        else if (name.includes('Loan') || name.includes('EMI') || name.includes('Debt')) { icon = CreditCard; color = 'text-rose-600'; }
+        else if (name.includes('Health') || name.includes('Insurance')) { icon = HeartPulse; color = 'text-rose-500'; }
+        else if (name.includes('Education')) { icon = GraduationCap; color = 'text-purple-600'; }
+
+        return {
+          name: c.category_name,
+          group: c.category_group === 'Mandatory Essentials' ? 'Essential' : 'Flexible',
+          icon,
+          color,
+          recommended: Number(c.recommended_limit || c.current_actual || 0),
+          safe: Number(c.safe_limit || c.recommended_limit || 0),
+          hard: Number(c.hard_limit || Math.round((c.safe_limit || 0) * 1.15))
+        };
+      });
+    }
+
+    const ess = plan?.expenses?.essential || 11300;
+    const life = plan?.expenses?.lifestyle || 2500;
+    const emi = plan?.debt?.total_emi || 0;
+
+    return [
+      { name: 'Housing & Rent', group: 'Essential', icon: Home, color: 'text-indigo-600', recommended: Math.round(ess * 0.45), safe: Math.round(ess * 0.45), hard: Math.round(ess * 0.50) },
+      { name: 'Food & Groceries', group: 'Essential', icon: ShoppingCart, color: 'text-emerald-600', recommended: Math.round(ess * 0.30), safe: Math.round(ess * 0.32), hard: Math.round(ess * 0.36) },
+      { name: 'Utilities & Wi-Fi', group: 'Essential', icon: Zap, color: 'text-amber-600', recommended: Math.round(ess * 0.15), safe: Math.round(ess * 0.16), hard: Math.round(ess * 0.18) },
+      { name: 'Transportation', group: 'Essential', icon: Car, color: 'text-blue-600', recommended: Math.round(ess * 0.10), safe: Math.round(ess * 0.11), hard: Math.round(ess * 0.13) },
+      { name: 'Loan EMIs / Debt', group: 'Obligation', icon: CreditCard, color: 'text-rose-600', recommended: emi, safe: emi, hard: emi },
+      { name: 'Lifestyle & Dining Out', group: 'Flexible', icon: Coffee, color: 'text-amber-600', recommended: Math.round(life * 0.60), safe: Math.round(life * 0.65), hard: Math.round(life * 0.75) },
+      { name: 'Shopping & Leisure', group: 'Flexible', icon: Coffee, color: 'text-teal-600', recommended: Math.round(life * 0.40), safe: Math.round(life * 0.45), hard: Math.round(life * 0.50) }
+    ];
+  }, [budget, plan]);
 
   return (
     <div className="space-y-6">
@@ -480,6 +532,110 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
                   <span className="w-2 h-2 rounded-full bg-teal-500"></span> Save: {savingsPct}%
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* HOW MUCH LIMIT FOR EVERYTHING - COMPREHENSIVE LIMITS HUB */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-0.5 rounded-full">
+                    Category Limits Control
+                  </span>
+                  <span className="text-xs text-slate-400 font-semibold">• Exact Spend Caps</span>
+                </div>
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">
+                  How Much Limit for Everything (Monthly & Daily Guidelines)
+                </h2>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  Clear spending thresholds so you never exceed your income or dip into debt.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setActiveDashboardTab('limits')}
+                  className="flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200/80 px-3.5 py-2 rounded-xl cursor-pointer transition-all shadow-2xs"
+                >
+                  <Sliders size={13} />
+                  Adjust Limits
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Hero Limits Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4">
+                <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Safe Daily Spend</span>
+                <div className="text-xl font-black text-amber-900 mt-1">
+                  ₹{(budget?.safe_to_spend_daily || Math.round((plan?.expenses?.lifestyle || 2500) / 30)).toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-amber-700 ml-1">/ day</span>
+                </div>
+                <span className="text-[10px] text-amber-700 font-medium block mt-1">Lifestyle & casual spending</span>
+              </div>
+
+              <div className="bg-indigo-50/60 border border-indigo-200/80 rounded-2xl p-4">
+                <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider block">Total Monthly Spend</span>
+                <div className="text-xl font-black text-indigo-900 mt-1">
+                  ₹{monthlyExpenses.toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-indigo-700 ml-1">/ mo</span>
+                </div>
+                <span className="text-[10px] text-indigo-700 font-medium block mt-1">Essentials + Life + EMIs</span>
+              </div>
+
+              <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-4">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Safe Savings Limit</span>
+                <div className="text-xl font-black text-emerald-900 mt-1">
+                  ₹{(budget?.emergency_contribution || plan?.budget?.emergency_fund || 0).toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-emerald-700 ml-1">/ mo</span>
+                </div>
+                <span className="text-[10px] text-emerald-700 font-medium block mt-1">Emergency fund cushion</span>
+              </div>
+
+              <div className="bg-teal-50/60 border border-teal-200/80 rounded-2xl p-4">
+                <span className="text-[10px] font-bold text-teal-800 uppercase tracking-wider block">Monthly Investment</span>
+                <div className="text-xl font-black text-teal-900 mt-1">
+                  ₹{(budget?.investment_capacity || plan?.budget?.investments || 0).toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-teal-700 ml-1">/ mo</span>
+                </div>
+                <span className="text-[10px] text-teal-700 font-medium block mt-1">Index SIP / PPF / RD</span>
+              </div>
+            </div>
+
+            {/* Category-by-Category Limits Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+              {categoryLimitsList.map((cat, idx) => (
+                <div key={idx} className="bg-slate-50/60 border border-slate-100 hover:border-slate-200 rounded-2xl p-4 flex flex-col justify-between transition-all">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <cat.icon size={15} className={cat.color} />
+                        {cat.name}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
+                        {cat.group}
+                      </span>
+                    </div>
+
+                    <div className="text-lg font-black text-slate-900 mt-1">
+                      ₹{cat.recommended.toLocaleString('en-IN')}
+                      <span className="text-[10px] font-semibold text-slate-400 ml-1">/ month</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-slate-200/60 text-[10px]">
+                      <div>
+                        <span className="text-slate-400 font-semibold block uppercase">Safe Limit</span>
+                        <span className="font-bold text-teal-700">₹{cat.safe.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-semibold block uppercase">Hard Cap</span>
+                        <span className="font-bold text-rose-600">₹{cat.hard.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -831,10 +987,10 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
                 </ResponsiveContainer>
               </div>
               <div className="flex flex-wrap gap-3 justify-center text-[10px] font-bold text-slate-500 mt-2">
-                {allocation.allocations.map((item, idx) => (
+                {(allocation?.allocations || []).map((item, idx) => (
                   <span key={idx} className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: allocationColors[item.category] }}></span>
-                    {item.category.split(' ')[0]}
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: allocationColors[item.category] || '#14b8a6' }}></span>
+                    {(item.category || item.label || 'Asset').split(' ')[0]}
                   </span>
                 ))}
               </div>
@@ -842,12 +998,12 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
 
             {/* List entries */}
             <div className="md:col-span-2 space-y-3.5">
-              {allocation.allocations.map((item, idx) => (
+              {(allocation?.allocations || []).map((item, idx) => (
                 <div key={idx} className="border border-slate-50 p-3.5 rounded-xl bg-slate-50/20 flex flex-col justify-between">
                   <div className="flex justify-between items-center text-xs font-bold text-slate-800">
                     <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: allocationColors[item.category] }}></span>
-                      {item.category}
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: allocationColors[item.category] || '#14b8a6' }}></span>
+                      {item.category || item.label || 'Asset'}
                     </span>
                     <span>
                       {item.percentage}% ({formatINR(item.monthly_amount)} / mo)
