@@ -1,33 +1,39 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../services/api';
-import MonthlyFinancialPlan from '../financial-calendar/MonthlyFinancialPlan';
-import MonthlyReview from '../financial-calendar/MonthlyReview';
-import LocationComparisonWidget from './LocationComparisonWidget';
 import {
   IndianRupee,
-  CheckSquare,
-  AlertTriangle,
-  Info,
-  ChevronDown,
-  TrendingUp,
-  TrendingDown,
-  Activity,
+  CreditCard,
   ShieldCheck,
-  Percent,
+  TrendingUp,
+  Home,
+  ShoppingCart,
+  Car,
+  Zap,
+  Coffee,
+  HeartPulse,
+  GraduationCap,
+  Calendar,
+  AlertTriangle,
+  Activity,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  PiggyBank,
+  Target,
+  Sparkles,
+  Edit2,
   HelpCircle,
-  X,
-  MapPin,
-  FileText
+  Clock,
+  Award
 } from 'lucide-react';
 
 export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
-  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [budget, setBudget] = useState(null);
   const [investments, setInvestments] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedExplanation, setSelectedExplanation] = useState(null);
-  const [showLocationDrawer, setShowLocationDrawer] = useState(false);
 
   const monthOptions = useMemo(() => {
     const options = [];
@@ -53,15 +59,17 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
       setLoading(true);
       setError(null);
       try {
-        const [budgetRes, investRes] = await Promise.all([
-          api.get(`/api/planning/monthly-budget`, { params: { month: selectedMonth } }),
-          api.get(`/api/investments/recommendations`)
+        const [budgetRes, investRes, goalsRes] = await Promise.all([
+          api.get('/api/planning/monthly-budget', { params: { month: selectedMonth } }),
+          api.get('/api/investments/recommendations').catch(() => ({ data: null })),
+          api.get('/api/goals').catch(() => ({ data: [] }))
         ]);
         setBudget(budgetRes.data);
         setInvestments(investRes.data);
+        setGoals(goalsRes.data || []);
       } catch (err) {
-        console.error("Failed to load operating plan", err);
-        setError("Unable to load monthly plan metrics. Please verify your onboarding profile is registered.");
+        console.error('Failed to load plan metrics:', err);
+        setError('Unable to load your financial plan. Please complete your profile questionnaire.');
       } finally {
         setLoading(false);
       }
@@ -71,9 +79,10 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center text-slate-500 font-semibold">
-        <Activity className="animate-spin text-teal-600 mb-4" size={32} />
-        <p className="text-sm">Loading your monthly financial operating plan...</p>
+      <div className="bg-white border border-slate-100 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm">
+        <Activity className="animate-spin text-teal-600 mx-auto mb-4" size={36} />
+        <h3 className="font-bold text-slate-800 text-lg mb-1">Building Your Financial Plan...</h3>
+        <p className="text-slate-400 text-xs font-semibold">Calculating exact spend, save, and invest limits...</p>
       </div>
     );
   }
@@ -81,232 +90,502 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
   if (error || !budget) {
     return (
       <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center max-w-lg mx-auto shadow-sm">
-        <AlertTriangle className="text-rose-600 mx-auto mb-4" size={36} />
-        <h3 className="font-bold text-slate-800 text-lg mb-2">Operating Plan Unavailable</h3>
+        <AlertTriangle className="text-amber-500 mx-auto mb-4" size={40} />
+        <h3 className="font-bold text-slate-800 text-lg mb-2">Plan Needs Profile Data</h3>
         <p className="text-slate-500 text-xs mb-6 font-semibold leading-relaxed">
-          {error || "Complete your profile onboarding to generate an actionable monthly financial plan."}
+          {error || 'Complete your financial questionnaire to generate your personalized action plan.'}
         </p>
         <button
           onClick={onEditProfile}
-          className="bg-teal-600 text-white font-semibold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-teal-700 transition-colors"
+          className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-6 py-3 rounded-xl cursor-pointer shadow-md transition-all"
         >
-          Complete Onboarding Profile
+          Complete Financial Profile
         </button>
       </div>
     );
   }
 
-  const isDeficit = budget.safe_to_spend_monthly <= 0;
+  // --- Calculations for Spend / Save / Invest ---
+  const income = Number(budget.planning_income || 0);
+
+  // 1. Total to Spend = Mandatory Expenses + Lifestyle Limit
+  const mandatorySpend = Number(budget.mandatory_expenses || 0);
+  const lifestyleSpend = Number(budget.safe_to_spend_monthly || budget.lifestyle_limit || 0);
+  const totalSpend = mandatorySpend + lifestyleSpend;
+
+  // 2. Total to Save = Emergency Contribution + Goal Contributions
+  const emergencySave = Number(budget.emergency_contribution || 0);
+  const goalSave = Number(budget.goal_contribution || 0);
+  const totalSave = emergencySave + goalSave;
+
+  // 3. Total to Invest = Investment Capacity
+  const totalInvest = Number(budget.investment_capacity || 0);
+
+  // Percentages of total income
+  const spendPct = income > 0 ? Math.round((totalSpend / income) * 100) : 50;
+  const savePct = income > 0 ? Math.round((totalSave / income) * 100) : 20;
+  const investPct = income > 0 ? Math.max(0, 100 - spendPct - savePct) : 30;
+
+  // Safe daily spend allowance
+  const safeDaily = Number(budget.safe_to_spend_daily || Math.round(lifestyleSpend / 30));
+
+  // Category Icon & Color Mapping
+  const getCategoryMeta = (catName) => {
+    const name = catName.toLowerCase();
+    if (name.includes('rent') || name.includes('housing')) {
+      return { icon: Home, color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' };
+    }
+    if (name.includes('food') || name.includes('grocer')) {
+      return { icon: ShoppingCart, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100' };
+    }
+    if (name.includes('transport') || name.includes('fuel') || name.includes('commute')) {
+      return { icon: Car, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100' };
+    }
+    if (name.includes('electric') || name.includes('water') || name.includes('internet') || name.includes('mobile')) {
+      return { icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100' };
+    }
+    if (name.includes('loan') || name.includes('emi') || name.includes('debt')) {
+      return { icon: CreditCard, color: 'text-rose-600', bg: 'bg-rose-50 border-rose-100' };
+    }
+    if (name.includes('health') || name.includes('medic') || name.includes('insurance')) {
+      return { icon: HeartPulse, color: 'text-rose-500', bg: 'bg-rose-50 border-rose-100' };
+    }
+    if (name.includes('education') || name.includes('course') || name.includes('tuition')) {
+      return { icon: GraduationCap, color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100' };
+    }
+    return { icon: Coffee, color: 'text-teal-600', bg: 'bg-teal-50 border-teal-100' };
+  };
+
+  // Filter categories with limits > 0 for a clean display
+  const activeCategories = (budget.categories || []).filter(
+    (c) => Number(c.recommended_limit || c.safe_limit || 0) > 0
+  );
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">My Monthly Money Plan</h2>
-          <p className="text-slate-400 text-xs font-semibold">Real-data salary split, three category limits, and safe-to-spend breakdown.</p>
+          <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            Monthly Blueprint
+          </span>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight mt-1">
+            Personal Money Allocation
+          </h1>
+          <p className="text-xs text-slate-400 font-semibold mt-0.5">
+            Your tailored monthly breakdown: exactly how much to Spend, Save, and Invest.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowLocationDrawer(!showLocationDrawer)}
-            className="flex items-center gap-1.5 bg-teal-50 border border-teal-200/60 text-teal-700 text-xs font-semibold px-3.5 py-2 rounded-xl hover:bg-teal-100/60 transition-colors"
-          >
-            <MapPin size={14} /> Relocation Cost Simulator
-          </button>
-
-          <div className="relative inline-block text-left">
+          <div className="relative">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full sm:w-56 appearance-none bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold font-semibold pr-8 focus:outline-none focus:border-teal-500 transition-colors cursor-pointer"
+              className="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold pr-8 focus:outline-none focus:border-teal-500 transition-colors cursor-pointer"
             >
-              {monthOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              {monthOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
             <ChevronDown size={14} className="text-slate-400 absolute right-3 top-3 pointer-events-none" />
           </div>
+
+          <button
+            onClick={onEditProfile}
+            className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md shadow-teal-600/10 cursor-pointer transition-all"
+          >
+            <Edit2 size={13} />
+            <span>Edit Profile</span>
+          </button>
         </div>
       </div>
 
-      {/* Relocation Drawer */}
-      {showLocationDrawer && (
-        <LocationComparisonWidget currentCity={budget.benchmark_status.includes("Coimbatore") ? "Coimbatore" : "Bengaluru"} />
-      )}
-
-      {/* Warnings & Alerts */}
-      {budget.warnings && budget.warnings.length > 0 && (
-        <div className="bg-rose-50 border border-rose-100 rounded-3xl p-5 space-y-3 shadow-xs">
-          <h3 className="text-xs font-bold text-rose-800 flex items-center gap-1.5 uppercase tracking-wider">
-            <AlertTriangle size={16} />
-            High Priority Financial Warnings
-          </h3>
-          <div className="space-y-2">
-            {budget.warnings.map((w, idx) => (
-              <p key={idx} className="text-xs font-semibold text-rose-600 leading-relaxed">
-                {w}
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Dynamic Salary Split Flow */}
-      <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm">
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Dynamic Salary Split Breakdown</div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 text-center">
-          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-slate-400 font-semibold block">Income</span>
-            <span className="text-xs font-extrabold text-slate-800">₹{budget.planning_income.toLocaleString()}</span>
-          </div>
-          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-slate-400 font-semibold block">Mandatory</span>
-            <span className="text-xs font-extrabold text-slate-800">₹{budget.mandatory_expenses.toLocaleString()}</span>
-          </div>
-          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-slate-400 font-semibold block">Emergency</span>
-            <span className="text-xs font-extrabold text-slate-800">₹{budget.emergency_contribution.toLocaleString()}</span>
-          </div>
-          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-slate-400 font-semibold block">Goals</span>
-            <span className="text-xs font-extrabold text-slate-800">₹{budget.goal_contribution.toLocaleString()}</span>
-          </div>
-          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-slate-400 font-semibold block">Investments</span>
-            <span className="text-xs font-extrabold text-slate-800">₹{budget.investment_capacity.toLocaleString()}</span>
-          </div>
-          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-slate-400 font-semibold block">Flexible</span>
-            <span className="text-xs font-extrabold text-slate-800">₹{budget.safe_to_spend_monthly.toLocaleString()}</span>
-          </div>
-          <div className="bg-teal-50 border border-teal-100 p-3 rounded-2xl">
-            <span className="text-[10px] text-teal-600 font-semibold block">Safe Daily</span>
-            <span className="text-xs font-extrabold text-teal-800">₹{budget.safe_to_spend_daily.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Spending Limits Table */}
-      <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
+      {/* 3 HERO PILLARS: SPEND, SAVE, INVEST */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* PILLAR 1: SPEND */}
+        <div className="bg-gradient-to-br from-amber-500/10 via-white to-white border border-amber-200 rounded-3xl p-6 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div>
-            <h3 className="text-base font-bold text-slate-800">Category Spending Limits Log</h3>
-            <p className="text-slate-400 text-xs font-medium">Comparing User Actual Spend vs 6-Mo History vs City Benchmark with Recommended, Safe, and Hard limits.</p>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                <CreditCard size={16} className="text-amber-600" />
+                1. How Much to Spend
+              </span>
+              <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-amber-100 text-amber-900 rounded-full">
+                {spendPct}% of Income
+              </span>
+            </div>
+
+            <div className="text-3xl font-black text-slate-900 tracking-tight">
+              ₹{totalSpend.toLocaleString('en-IN')}
+              <span className="text-xs font-semibold text-slate-400 ml-1">/ month</span>
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+              Covers fixed essentials (housing, bills, EMIs) plus your monthly lifestyle allowance.
+            </p>
           </div>
-          <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-3 py-1 rounded-xl border border-teal-100">
-            {budget.benchmark_status}
+
+          <div className="mt-4 pt-4 border-t border-amber-100/80 flex items-center justify-between bg-amber-50/60 -mx-6 -mb-6 p-4 rounded-b-3xl">
+            <span className="text-xs text-amber-900 font-semibold">Safe Daily Spend:</span>
+            <span className="text-sm font-black text-amber-800">
+              ₹{safeDaily.toLocaleString('en-IN')} <span className="text-[10px] font-semibold text-amber-600">/ day</span>
+            </span>
+          </div>
+        </div>
+
+        {/* PILLAR 2: SAVE */}
+        <div className="bg-gradient-to-br from-emerald-500/10 via-white to-white border border-emerald-200 rounded-3xl p-6 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                2. How Much to Save
+              </span>
+              <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-emerald-100 text-emerald-900 rounded-full">
+                {savePct}% of Income
+              </span>
+            </div>
+
+            <div className="text-3xl font-black text-slate-900 tracking-tight">
+              ₹{totalSave.toLocaleString('en-IN')}
+              <span className="text-xs font-semibold text-slate-400 ml-1">/ month</span>
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+              Builds your emergency fund reserve and funds short/medium-term milestones.
+            </p>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-emerald-100/80 flex items-center justify-between bg-emerald-50/60 -mx-6 -mb-6 p-4 rounded-b-3xl">
+            <span className="text-xs text-emerald-900 font-semibold">Emergency Fund Deposit:</span>
+            <span className="text-sm font-black text-emerald-800">
+              ₹{emergencySave.toLocaleString('en-IN')} <span className="text-[10px] font-semibold text-emerald-600">/ month</span>
+            </span>
+          </div>
+        </div>
+
+        {/* PILLAR 3: INVEST */}
+        <div className="bg-gradient-to-br from-teal-500/10 via-white to-white border border-teal-200 rounded-3xl p-6 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider flex items-center gap-1.5">
+                <TrendingUp size={16} className="text-teal-600" />
+                3. How Much to Invest
+              </span>
+              <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-teal-100 text-teal-900 rounded-full">
+                {investPct}% of Income
+              </span>
+            </div>
+
+            <div className="text-3xl font-black text-slate-900 tracking-tight">
+              ₹{totalInvest.toLocaleString('en-IN')}
+              <span className="text-xs font-semibold text-slate-400 ml-1">/ month</span>
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+              Dedicated capital for long-term compound growth via SIPs, index funds, and FDs.
+            </p>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-teal-100/80 flex items-center justify-between bg-teal-50/60 -mx-6 -mb-6 p-4 rounded-b-3xl">
+            <span className="text-xs text-teal-900 font-semibold">Suggested SIP Target:</span>
+            <span className="text-sm font-black text-teal-800">
+              ₹{totalInvest.toLocaleString('en-IN')} <span className="text-[10px] font-semibold text-teal-600">/ month</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Visual Income Distribution Ratio Bar */}
+      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs font-bold text-slate-700 mb-2.5 gap-1">
+          <span>Monthly Income Split: ₹{income.toLocaleString('en-IN')}</span>
+          <span className="text-slate-400 font-medium text-[11px]">Recommended 50 / 20 / 30 Allocation</span>
+        </div>
+        <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-100">
+          <div
+            style={{ width: `${spendPct}%` }}
+            className="bg-amber-500 transition-all"
+            title={`Spend: ${spendPct}%`}
+          />
+          <div
+            style={{ width: `${savePct}%` }}
+            className="bg-emerald-500 transition-all"
+            title={`Save: ${savePct}%`}
+          />
+          <div
+            style={{ width: `${investPct}%` }}
+            className="bg-teal-500 transition-all"
+            title={`Invest: ${investPct}%`}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between text-xs font-semibold text-slate-600 mt-3 pt-2 border-t border-slate-50 gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+            <span>Spend: <strong>₹{totalSpend.toLocaleString('en-IN')}</strong> ({spendPct}%)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+            <span>Save: <strong>₹{totalSave.toLocaleString('en-IN')}</strong> ({savePct}%)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
+            <span>Invest: <strong>₹{totalInvest.toLocaleString('en-IN')}</strong> ({investPct}%)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 1: HOW MUCH TO SPEND (CATEGORY BREAKDOWN) */}
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <CreditCard className="text-amber-500" size={20} />
+              Where to Spend: Particular Category Limits
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">
+              Authoritative spending targets so you never overspend in any category.
+            </p>
+          </div>
+          <span className="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-100 px-3 py-1 rounded-xl shrink-0">
+            Total Spend Limit: ₹{totalSpend.toLocaleString('en-IN')}/mo
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-medium text-slate-600">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider">
-                <th className="pb-3 px-2">Category</th>
-                <th className="pb-3 px-2">Classification</th>
-                <th className="pb-3 px-2">Your Spending</th>
-                <th className="pb-3 px-2">Local Benchmark</th>
-                <th className="pb-3 px-2">Recommended</th>
-                <th className="pb-3 px-2">Safe Limit</th>
-                <th className="pb-3 px-2">Hard Limit</th>
-                <th className="pb-3 px-2">Variance</th>
-                <th className="pb-3 px-2 text-center">Why?</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {budget.categories.map((cat, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 px-2 font-bold text-slate-800">{cat.category}</td>
-                  <td className="py-3 px-2">
-                    <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] ${
-                      cat.data_classification === 'ACTUAL' ? 'bg-emerald-100 text-emerald-800' :
-                      cat.data_classification === 'HISTORICAL' ? 'bg-sky-100 text-sky-800' :
-                      cat.data_classification === 'BENCHMARK' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {cat.data_classification}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2 font-semibold text-slate-700">
-                    {cat.current_spending !== null ? `₹${cat.current_spending.toLocaleString()}` : <span className="text-slate-400 italic">Not Recorded</span>}
-                  </td>
-                  <td className="py-3 px-2">
-                    {cat.local_benchmark !== null ? `₹${cat.local_benchmark.toLocaleString()}` : <span className="text-slate-400 italic">Unavailable</span>}
-                  </td>
-                  <td className="py-3 px-2 font-bold text-slate-800">₹{cat.recommended_limit.toLocaleString()}</td>
-                  <td className="py-3 px-2 text-teal-700 font-semibold">₹{cat.safe_limit.toLocaleString()}</td>
-                  <td className="py-3 px-2 text-rose-700 font-semibold">₹{cat.hard_limit.toLocaleString()}</td>
-                  <td className="py-3 px-2">
-                    {cat.variance_from_benchmark !== null ? (
-                      <span className={`font-semibold ${cat.variance_from_benchmark > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        {cat.variance_from_benchmark > 0 ? '+' : ''}₹{cat.variance_from_benchmark.toLocaleString()} ({cat.variance_percentage}%)
+        {activeCategories.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {activeCategories.map((cat, idx) => {
+              const meta = getCategoryMeta(cat.category);
+              const Icon = meta.icon;
+              const limit = Number(cat.recommended_limit || cat.safe_limit || 0);
+              const catPct = income > 0 ? Math.round((limit / income) * 100) : 0;
+
+              return (
+                <div
+                  key={idx}
+                  className="bg-slate-50/60 hover:bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-center justify-between transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${meta.bg} ${meta.color} shrink-0`}>
+                      <Icon size={18} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-xs">{cat.category}</h3>
+                      <span className="text-[10px] font-semibold text-slate-400">
+                        {catPct > 0 ? `${catPct}% of income` : 'Target limit'}
                       </span>
-                    ) : (
-                      <span className="text-slate-400 italic">N/A</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-2 text-center">
-                    <button
-                      onClick={() => setSelectedExplanation(cat.explanation_object)}
-                      className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      title="Explain calculation"
-                    >
-                      <HelpCircle size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-sm font-black text-slate-800">₹{limit.toLocaleString('en-IN')}</div>
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                      Recommended
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic py-2">
+            No specific categories recorded. Tap 'Edit Profile' to enter your expenses.
+          </p>
+        )}
       </div>
 
-      {/* Popover Explanation Modal */}
-      {selectedExplanation && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-lg w-full shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-teal-700 font-bold text-sm">
-                <FileText size={18} /> Calculation Provenance & Reasoning
+      {/* SECTION 2: HOW MUCH TO SAVE (SAVINGS & EMERGENCY FUND) */}
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <ShieldCheck className="text-emerald-500" size={20} />
+              How Much to Save: Reserves & Goals
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">
+              Keep your financial foundation solid before taking market risks.
+            </p>
+          </div>
+          <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-xl shrink-0">
+            Total Monthly Savings: ₹{totalSave.toLocaleString('en-IN')}/mo
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Emergency Fund Card */}
+          <div className="border border-emerald-100 bg-emerald-50/30 p-4.5 rounded-2xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-xs text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <PiggyBank size={16} className="text-emerald-600" />
+                  Emergency Fund Deposit
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                  Priority #1
+                </span>
               </div>
-              <button
-                onClick={() => setSelectedExplanation(null)}
-                className="p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200"
-              >
-                <X size={16} />
-              </button>
+              <div className="text-2xl font-black text-slate-900 mt-1">
+                ₹{emergencySave.toLocaleString('en-IN')}
+                <span className="text-xs font-semibold text-slate-400 ml-1">/ month</span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                Deposit this amount monthly into a liquid savings account or sweep fixed deposit until you reach 3–6 months of essential living costs.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-emerald-100 text-xs font-semibold text-emerald-700 flex items-center justify-between">
+              <span>Target Reserve:</span>
+              <span>₹{(mandatorySpend * 3).toLocaleString('en-IN')} (3 Months Cushion)</span>
+            </div>
+          </div>
+
+          {/* Goal Savings or Buffer Card */}
+          <div className="border border-teal-100 bg-teal-50/30 p-4.5 rounded-2xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-xs text-teal-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Target size={16} className="text-teal-600" />
+                  Milestone & Goal Savings
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-teal-100 text-teal-800 rounded-md">
+                  {goals.length} Declared Goals
+                </span>
+              </div>
+              <div className="text-2xl font-black text-slate-900 mt-1">
+                ₹{goalSave.toLocaleString('en-IN')}
+                <span className="text-xs font-semibold text-slate-400 ml-1">/ month</span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                Allocated monthly towards your stated financial dreams (education, travel, gadgets, vehicle).
+              </p>
             </div>
 
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
-              <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Metric</div>
-              <div className="text-base font-extrabold text-slate-800">{selectedExplanation.metric}</div>
-              <div className="text-xl font-black text-teal-600">₹{selectedExplanation.value.toLocaleString()}</div>
-            </div>
-
-            <div className="space-y-2 text-xs text-slate-600 font-medium leading-relaxed">
-              <span className="font-bold text-slate-800 block">Calculation Basis:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {selectedExplanation.basis.map((b, idx) => (
-                  <span key={idx} className="bg-teal-50 text-teal-700 font-semibold px-2.5 py-1 rounded-lg text-[10px]">
-                    {b.replace('_', ' ')}
-                  </span>
+            {goals.length > 0 ? (
+              <div className="mt-4 pt-3 border-t border-teal-100 space-y-1.5">
+                {goals.slice(0, 2).map((g) => (
+                  <div key={g.id} className="flex justify-between text-xs text-slate-700 font-semibold">
+                    <span>{g.goal_name || g.name}</span>
+                    <span className="text-teal-700 font-bold">Target: ₹{Number(g.target_amount || g.targetAmount || 0).toLocaleString('en-IN')}</span>
+                  </div>
                 ))}
               </div>
-            </div>
-
-            <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs text-slate-700 font-medium">
-              {selectedExplanation.explanation}
-            </div>
-
-            {selectedExplanation.provenance && (
-              <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-400 font-medium space-y-1">
-                <div>Source: <span className="text-slate-600 font-semibold">{selectedExplanation.provenance.source}</span></div>
-                <div>Freshness Status: <span className="text-emerald-600 font-semibold">{selectedExplanation.provenance.freshness_status}</span></div>
+            ) : (
+              <div className="mt-4 pt-3 border-t border-teal-100 text-xs text-slate-400 font-medium">
+                No custom goals declared yet.
               </div>
             )}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* SECTION 3: HOW MUCH TO INVEST (INVESTMENT RECOMMENDATIONS) */}
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <TrendingUp className="text-teal-500" size={20} />
+              How Much to Invest: Smart Asset Allocation
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">
+              Put your surplus money to work with systematic monthly wealth compounding.
+            </p>
+          </div>
+          <span className="text-xs font-extrabold text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1 rounded-xl shrink-0">
+            Total Investment Capacity: ₹{totalInvest.toLocaleString('en-IN')}/mo
+          </span>
+        </div>
+
+        {totalInvest > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Asset 1: Equity / Index SIP */}
+            <div className="border border-slate-100 bg-slate-50/50 p-4.5 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md uppercase">
+                    50% Allocation
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+                    High Growth
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-slate-800 text-sm">
+                  Index Funds / Equity SIP
+                </h3>
+                <div className="text-xl font-black text-teal-700 mt-1.5">
+                  ₹{Math.round(totalInvest * 0.5).toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-slate-400 ml-1">/ month</span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                  Start an automated monthly SIP in a broad Nifty 50 Index Fund or ELSS for inflation-beating wealth creation.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 font-semibold">
+                Horizon: 5+ Years • Compounding: ~12%
+              </div>
+            </div>
+
+            {/* Asset 2: Fixed Income / PPF / Debt */}
+            <div className="border border-slate-100 bg-slate-50/50 p-4.5 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md uppercase">
+                    30% Allocation
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                    Low Risk
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-slate-800 text-sm">
+                  PPF / Fixed Deposit / Debt
+                </h3>
+                <div className="text-xl font-black text-blue-700 mt-1.5">
+                  ₹{Math.round(totalInvest * 0.3).toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-slate-400 ml-1">/ month</span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                  Guaranteed capital protection via Public Provident Fund (PPF) or Bank Recurring Deposits with zero market volatility.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 font-semibold">
+                Horizon: 3–5 Years • Safe Guaranteed Returns
+              </div>
+            </div>
+
+            {/* Asset 3: Gold / SGB / Liquid Buffer */}
+            <div className="border border-slate-100 bg-slate-50/50 p-4.5 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md uppercase">
+                    20% Allocation
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                    Hedge
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-slate-800 text-sm">
+                  Gold ETFs / SGB / Liquid
+                </h3>
+                <div className="text-xl font-black text-amber-700 mt-1.5">
+                  ₹{Math.round(totalInvest * 0.2).toLocaleString('en-IN')}
+                  <span className="text-[10px] font-semibold text-slate-400 ml-1">/ month</span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                  Sovereign Gold Bonds (SGB) or digital Gold ETFs to hedge your portfolio against currency inflation.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 font-semibold">
+                Horizon: Flexible • Market Inflation Hedge
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-800 font-medium">
+            Currently your monthly expenses match your income. Build your savings buffer first to unlock monthly investment capacity!
+          </div>
+        )}
+      </div>
     </div>
   );
 }
