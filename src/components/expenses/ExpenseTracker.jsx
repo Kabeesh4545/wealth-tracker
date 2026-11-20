@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Loader2, AlertCircle, Zap, Coffee, ShoppingBag, Car, Utensils, Clock, Flame } from 'lucide-react';
 import api from '../../services/api';
 import ExpenseForm from './ExpenseForm';
 import ExpenseList from './ExpenseList';
@@ -122,6 +122,29 @@ export default function ExpenseTracker() {
     setShowForm(true);
   };
 
+  const handleQuickAdd = (preset) => {
+    setEditingExpense({
+      amount: preset.amount,
+      category: preset.category,
+      subcategory: preset.subcategory,
+      expense_date: new Date().toISOString().split('T')[0],
+      description: preset.description,
+      payment_method: 'UPI'
+    });
+    setShowForm(true);
+  };
+
+  // Safe pace calculations
+  const today = new Date();
+  const isCurrentMonth = selectedMonth === (today.getMonth() + 1) && selectedYear === today.getFullYear();
+  const totalDaysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+  const daysRemaining = isCurrentMonth ? Math.max(1, totalDaysInMonth - today.getDate()) : totalDaysInMonth;
+  const plannedBudget = summary?.planned_budget || 0;
+  const totalSpent = summary?.total_expenses || 0;
+  const budgetRemaining = Math.max(0, plannedBudget - totalSpent);
+  const safePacePerDay = Math.round(budgetRemaining / daysRemaining);
+  const budgetUsedPct = plannedBudget > 0 ? Math.min(100, Math.round((totalSpent / plannedBudget) * 100)) : 0;
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto px-4 md:px-6 py-6">
       
@@ -167,6 +190,88 @@ export default function ExpenseTracker() {
           </button>
         </div>
       </div>
+
+      {/* 1-TAP QUICK ADD PRESETS BAR */}
+      <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Zap size={15} className="text-amber-500" />
+          <span className="text-xs font-bold text-slate-700">1-Tap Quick Log:</span>
+          <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Tap to log frequent transactions instantly</span>
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <button
+            onClick={() => handleQuickAdd({ amount: 50, category: 'Lifestyle', subcategory: 'Eating Outside', description: 'Chai & Snacks' })}
+            className="flex items-center gap-1 text-xs font-bold bg-white hover:bg-amber-50 text-slate-700 border border-slate-200 hover:border-amber-300 px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs transition-all whitespace-nowrap"
+          >
+            <Coffee size={13} className="text-amber-600" />
+            + ₹50 Chai
+          </button>
+
+          <button
+            onClick={() => handleQuickAdd({ amount: 150, category: 'Lifestyle', subcategory: 'Eating Outside', description: 'Lunch / Food' })}
+            className="flex items-center gap-1 text-xs font-bold bg-white hover:bg-amber-50 text-slate-700 border border-slate-200 hover:border-amber-300 px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs transition-all whitespace-nowrap"
+          >
+            <Utensils size={13} className="text-amber-600" />
+            + ₹150 Lunch
+          </button>
+
+          <button
+            onClick={() => handleQuickAdd({ amount: 200, category: 'Essential', subcategory: 'Transportation', description: 'Fuel / Auto Commute' })}
+            className="flex items-center gap-1 text-xs font-bold bg-white hover:bg-blue-50 text-slate-700 border border-slate-200 hover:border-blue-300 px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs transition-all whitespace-nowrap"
+          >
+            <Car size={13} className="text-blue-600" />
+            + ₹200 Fuel
+          </button>
+
+          <button
+            onClick={() => handleQuickAdd({ amount: 500, category: 'Essential', subcategory: 'Food & Groceries', description: 'Supermarket Groceries' })}
+            className="flex items-center gap-1 text-xs font-bold bg-white hover:bg-emerald-50 text-slate-700 border border-slate-200 hover:border-emerald-300 px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs transition-all whitespace-nowrap"
+          >
+            <ShoppingBag size={13} className="text-emerald-600" />
+            + ₹500 Groceries
+          </button>
+        </div>
+      </div>
+
+      {/* LIVE CATEGORY BURN METER & SAFE DAILY PACE */}
+      {plannedBudget > 0 && (
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4.5 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Flame size={16} className={budgetUsedPct > 90 ? 'text-rose-400' : 'text-amber-400'} />
+              <span className="font-extrabold text-white">Monthly Budget Burn Meter</span>
+              <span className="text-[10px] text-slate-400">({selectedMonth}/{selectedYear})</span>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-semibold">
+              <span className="text-slate-300">Spent: <strong className="text-white">₹{totalSpent.toLocaleString('en-IN')}</strong> of ₹{plannedBudget.toLocaleString('en-IN')}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${budgetUsedPct > 90 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}`}>
+                {budgetUsedPct}% Used
+              </span>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${budgetUsedPct > 90 ? 'bg-rose-500' : budgetUsedPct > 70 ? 'bg-amber-400' : 'bg-teal-400'}`}
+              style={{ width: `${budgetUsedPct}%` }}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-300 pt-1 border-t border-white/10 gap-1">
+            <div className="flex items-center gap-1.5">
+              <Clock size={12} className="text-teal-400" />
+              <span><strong>{daysRemaining} days remaining</strong> in this month</span>
+            </div>
+            <div className="text-right">
+              <span>Safe Spending Pace: </span>
+              <strong className="text-teal-300 text-xs">₹{safePacePerDay.toLocaleString('en-IN')} / day</strong>
+              <span className="text-slate-400 ml-1">remaining</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content grid */}
       {loading && !summary ? (

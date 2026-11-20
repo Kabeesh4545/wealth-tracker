@@ -32,7 +32,8 @@ import {
   LogOut,
   Mail,
   Loader2,
-  KeyRound
+  KeyRound,
+  Bot
 } from 'lucide-react';
 
 const CITIES = [
@@ -817,7 +818,7 @@ export default function App() {
       </header>
 
       {/* Main container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 flex flex-col justify-center">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 pb-24 md:pb-8 flex flex-col justify-center">
         {authLoading ? (
           <div className="text-center py-12">
             <Loader2 className="animate-spin text-teal-600 mx-auto mb-4" size={36} />
@@ -2231,6 +2232,61 @@ export default function App() {
       <footer className="py-6 border-t border-slate-100 bg-white text-center text-xs text-slate-400 font-medium">
         &copy; {new Date().getFullYear()} Antigravity Money. All rights reserved.
       </footer>
+
+      {/* Sticky Mobile Bottom Navigation Bar */}
+      {isAuthenticated && view !== 'onboarding' && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 flex items-center justify-around py-2 px-1 shadow-lg shadow-slate-900/10">
+          <button
+            onClick={() => setView('plan-ready')}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${
+              view === 'plan-ready' ? 'text-teal-600 font-bold' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Wallet size={18} />
+            <span className="text-[10px]">Plan</span>
+          </button>
+
+          <button
+            onClick={() => setView('dashboard')}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${
+              view === 'dashboard' ? 'text-teal-600 font-bold' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <BarChart2 size={18} />
+            <span className="text-[10px]">Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => setView('expenses')}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${
+              view === 'expenses' ? 'text-teal-600 font-bold' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <CreditCard size={18} />
+            <span className="text-[10px]">Expenses</span>
+          </button>
+
+          <button
+            onClick={() => setView('goals')}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${
+              view === 'goals' ? 'text-teal-600 font-bold' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Target size={18} />
+            <span className="text-[10px]">Goals</span>
+          </button>
+
+          <button
+            onClick={() => setView('assistant')}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${
+              view === 'assistant' ? 'text-teal-600 font-bold' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Bot size={18} />
+            <span className="text-[10px]">AI Coach</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

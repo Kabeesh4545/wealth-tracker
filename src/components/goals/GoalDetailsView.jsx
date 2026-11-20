@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Calendar, Trash2, Edit3, PlusCircle, Loader2, AlertCircle, Target, CheckCircle2, ChevronRight, ListFilter } from 'lucide-react';
+import { Calendar, Trash2, Edit3, PlusCircle, Loader2, AlertCircle, Target, CheckCircle2, ChevronRight, ListFilter, Clock, Sparkles, TrendingUp } from 'lucide-react';
 import api from '../../services/api';
 
 const SOURCES = ["Bank Savings", "Salary", "Cash", "Other"];
@@ -30,6 +30,7 @@ export default function GoalDetailsView({ initialSelectedGoalId }) {
   const [contribLoading, setContribLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalError, setModalError] = useState('');
+  const [boostAmount, setBoostAmount] = useState(500);
 
   const formatINR = (val) => {
     return new Intl.NumberFormat('en-IN', {
@@ -384,6 +385,63 @@ export default function GoalDetailsView({ initialSelectedGoalId }) {
                       <div className="bg-teal-500 h-full rounded-full" style={{ width: `${selectedGoal.progress_percentage}%` }}></div>
                     </div>
                   </div>
+
+                  {/* Target Completion Countdown & Boost Calculator */}
+                  {selectedGoal.actual_status !== 'Completed' && (() => {
+                    const monthlyContrib = Number(selectedGoal.required_monthly_contribution || selectedGoal.planned_monthly_contribution || 1000);
+                    const remainingGap = Math.max(0, Number(selectedGoal.remaining_amount || (selectedGoal.target_amount - selectedGoal.current_saved)));
+                    const currentMonthsNeeded = monthlyContrib > 0 ? Math.ceil(remainingGap / monthlyContrib) : 12;
+                    const boostedContrib = monthlyContrib + boostAmount;
+                    const boostedMonthsNeeded = Math.ceil(remainingGap / boostedContrib);
+                    const monthsSaved = Math.max(0, currentMonthsNeeded - boostedMonthsNeeded);
+                    const targetDateObj = new Date();
+                    targetDateObj.setMonth(targetDateObj.getMonth() + currentMonthsNeeded);
+                    const projectedDateStr = targetDateObj.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+
+                    return (
+                      <div className="bg-gradient-to-r from-teal-50/70 via-white to-teal-50/40 border border-teal-100 rounded-2xl p-4 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-100/60 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} className="text-teal-600" />
+                            <span className="text-xs font-black text-slate-800">Target Completion Countdown</span>
+                          </div>
+                          <span className="text-xs font-extrabold text-teal-800 bg-teal-100/70 px-3 py-1 rounded-xl">
+                            Estimated: {projectedDateStr} ({currentMonthsNeeded} mos left)
+                          </span>
+                        </div>
+
+                        {/* Boost Calculator */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                          <div>
+                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                              <Sparkles size={14} className="text-amber-500" />
+                              Boost My Goal Simulator:
+                            </span>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              Adding <strong className="text-teal-700">+₹{boostAmount.toLocaleString('en-IN')}/mo</strong> reaches this goal{' '}
+                              <strong className="text-emerald-700 font-extrabold">{monthsSaved} month{monthsSaved === 1 ? '' : 's'} earlier!</strong>
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {[250, 500, 1000, 2000].map(amt => (
+                              <button
+                                key={amt}
+                                onClick={() => setBoostAmount(amt)}
+                                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                  boostAmount === amt
+                                    ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                                }`}
+                              >
+                                +₹{amt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Planned vs Actual contributions breakdown */}
                   <div className="bg-slate-50/50 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border border-slate-100 text-xs">

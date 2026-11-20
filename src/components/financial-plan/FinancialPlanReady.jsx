@@ -24,7 +24,13 @@ import {
   Edit2,
   HelpCircle,
   Clock,
-  Award
+  Award,
+  Printer,
+  CheckSquare,
+  Square,
+  Sliders,
+  Compass,
+  ArrowRight
 } from 'lucide-react';
 
 export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
@@ -34,6 +40,23 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Interactive Checklist State
+  const [completedTasks, setCompletedTasks] = useState({
+    rent: false,
+    bills: false,
+    emergency: false,
+    invest: false,
+    daily: false
+  });
+
+  // Beginner Zero-Savings Starter Slider State
+  const [starterSavings, setStarterSavings] = useState(2000);
+  const [showStarterGuide, setShowStarterGuide] = useState(true);
+
+  const toggleTask = (taskId) => {
+    setCompletedTasks(prev => ({ ...prev, [taskId]: !prev[taskId] }));
+  };
 
   const monthOptions = useMemo(() => {
     const options = [];
@@ -194,6 +217,15 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
           </div>
 
           <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs cursor-pointer transition-all"
+            title="Print or Save as PDF"
+          >
+            <Printer size={13} className="text-slate-500" />
+            <span>Print</span>
+          </button>
+
+          <button
             onClick={onEditProfile}
             className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md shadow-teal-600/10 cursor-pointer transition-all"
           >
@@ -334,6 +366,163 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
             <span>Invest: <strong>₹{totalInvest.toLocaleString('en-IN')}</strong> ({investPct}%)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* MONTHLY ACTION CHECKLIST (TO-DO MODE) */}
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md uppercase">
+                Action Checklist
+              </span>
+              <h2 className="text-base font-bold text-slate-800">
+                Monthly Execution Tasks
+              </h2>
+            </div>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Check off your financial obligations as you complete them this month.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <div className="text-xs font-bold text-slate-700">
+                {Object.values(completedTasks).filter(Boolean).length} of 5 Done
+              </div>
+              <div className="text-[10px] font-semibold text-teal-600">
+                {Math.round((Object.values(completedTasks).filter(Boolean).length / 5) * 100)}% Completed
+              </div>
+            </div>
+            <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-teal-500 transition-all duration-300"
+                style={{ width: `${(Object.values(completedTasks).filter(Boolean).length / 5) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Task 1 */}
+          <div
+            onClick={() => toggleTask('rent')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+              completedTasks.rent
+                ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
+                : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {completedTasks.rent ? (
+              <CheckSquare size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <Square size={18} className="text-slate-400 shrink-0 mt-0.5" />
+            )}
+            <div className="text-xs">
+              <div className={`font-bold ${completedTasks.rent ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                Pay Rent & Housing Bills
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                Target: by 5th of this month
+              </div>
+            </div>
+          </div>
+
+          {/* Task 2 */}
+          <div
+            onClick={() => toggleTask('bills')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+              completedTasks.bills
+                ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
+                : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {completedTasks.bills ? (
+              <CheckSquare size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <Square size={18} className="text-slate-400 shrink-0 mt-0.5" />
+            )}
+            <div className="text-xs">
+              <div className={`font-bold ${completedTasks.bills ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                Settle Electricity & Wi-Fi
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                Utilities and mobile recharge
+              </div>
+            </div>
+          </div>
+
+          {/* Task 3 */}
+          <div
+            onClick={() => toggleTask('emergency')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+              completedTasks.emergency
+                ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
+                : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {completedTasks.emergency ? (
+              <CheckSquare size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <Square size={18} className="text-slate-400 shrink-0 mt-0.5" />
+            )}
+            <div className="text-xs">
+              <div className={`font-bold ${completedTasks.emergency ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                Deposit Emergency Reserve
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                ₹{emergencySave.toLocaleString('en-IN')} to Savings/RD
+              </div>
+            </div>
+          </div>
+
+          {/* Task 4 */}
+          <div
+            onClick={() => toggleTask('invest')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+              completedTasks.invest
+                ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
+                : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {completedTasks.invest ? (
+              <CheckSquare size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <Square size={18} className="text-slate-400 shrink-0 mt-0.5" />
+            )}
+            <div className="text-xs">
+              <div className={`font-bold ${completedTasks.invest ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                Execute Monthly SIP / PPF
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                ₹{totalInvest > 0 ? totalInvest.toLocaleString('en-IN') : '500'} auto-invested
+              </div>
+            </div>
+          </div>
+
+          {/* Task 5 */}
+          <div
+            onClick={() => toggleTask('daily')}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+              completedTasks.daily
+                ? 'bg-emerald-50/50 border-emerald-200 text-slate-500'
+                : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {completedTasks.daily ? (
+              <CheckSquare size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <Square size={18} className="text-slate-400 shrink-0 mt-0.5" />
+            )}
+            <div className="text-xs">
+              <div className={`font-bold ${completedTasks.daily ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                Stay Within Safe Daily Spend
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                Max ₹{safeDaily.toLocaleString('en-IN')}/day for lifestyle
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -585,6 +774,159 @@ export default function FinancialPlanReady({ onNavigate, onEditProfile }) {
             Currently your monthly expenses match your income. Build your savings buffer first to unlock monthly investment capacity!
           </div>
         )}
+      </div>
+
+      {/* BEGINNER'S ZERO-SAVINGS & FIRST-TIME INVESTMENT KIT */}
+      <div className="bg-gradient-to-br from-teal-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-teal-400/20 text-teal-300 border border-teal-400/30 px-2.5 py-0.5 rounded-full">
+                Zero-Savings Starter Guide
+              </span>
+              <span className="text-xs text-slate-400">• Absolute Beginner Friendly</span>
+            </div>
+            <h2 className="text-xl font-black text-white tracking-tight">
+              Don't Have Any Savings Yet? Start Here
+            </h2>
+            <p className="text-xs text-slate-300 font-medium mt-1">
+              You don't need lakhs of rupees to invest. Start with even ₹500 to ₹1,500/month and follow this proven 3-tier roadmap.
+            </p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-xs border border-white/15 px-4 py-2.5 rounded-2xl text-right shrink-0">
+            <div className="text-[11px] text-teal-300 font-bold uppercase">Starter Savings Goal</div>
+            <div className="text-2xl font-black text-white">₹{starterSavings.toLocaleString('en-IN')}<span className="text-xs font-normal text-slate-300">/mo</span></div>
+          </div>
+        </div>
+
+        {/* Interactive Starter Slider */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+          <div className="flex justify-between items-center text-xs font-bold">
+            <span className="text-slate-300 flex items-center gap-2">
+              <Sliders size={14} className="text-teal-400" />
+              How much can you comfortably set aside each month?
+            </span>
+            <span className="text-teal-300 font-black text-sm">₹{starterSavings.toLocaleString('en-IN')} / month</span>
+          </div>
+
+          <input
+            type="range"
+            min="500"
+            max="10000"
+            step="250"
+            value={starterSavings}
+            onChange={(e) => setStarterSavings(Number(e.target.value))}
+            className="w-full accent-teal-400 h-2 bg-white/20 rounded-lg cursor-pointer"
+          />
+
+          <div className="flex justify-between text-[11px] text-slate-400 font-semibold pt-1">
+            <span>₹500 / mo (Starter)</span>
+            <span>₹2,500 / mo</span>
+            <span>₹5,000 / mo</span>
+            <span>₹10,000 / mo</span>
+          </div>
+        </div>
+
+        {/* 3 Step Recommendation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Step 1 */}
+          <div className="bg-white/10 border border-white/15 rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-md">
+                  Step 1 • 50% Share
+                </span>
+                <span className="text-[10px] font-bold text-slate-300">Zero Risk</span>
+              </div>
+              <h3 className="text-base font-extrabold text-white">
+                Emergency Bank RD
+              </h3>
+              <div className="text-xl font-black text-emerald-300 mt-1">
+                ₹{Math.round(starterSavings * 0.50).toLocaleString('en-IN')}
+                <span className="text-xs font-medium text-slate-300 ml-1">/ month</span>
+              </div>
+              <p className="text-xs text-slate-300 font-normal mt-2.5 leading-relaxed">
+                Set up an automated Recurring Deposit (RD) in your bank on salary day. Yields <strong>7.0% p.a. guaranteed</strong>. Builds your 1-month safety shield so you never borrow during emergencies.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-white/10 text-[11px] text-emerald-300 font-semibold">
+              ✓ Start with ₹500 • 100% Capital Safe
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="bg-white/10 border border-white/15 rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30 px-2 py-0.5 rounded-md">
+                  Step 2 • 35% Share
+                </span>
+                <span className="text-[10px] font-bold text-teal-200">High Compounding</span>
+              </div>
+              <h3 className="text-base font-extrabold text-white">
+                Nifty 50 Index SIP
+              </h3>
+              <div className="text-xl font-black text-teal-300 mt-1">
+                ₹{Math.round(starterSavings * 0.35).toLocaleString('en-IN')}
+                <span className="text-xs font-medium text-slate-300 ml-1">/ month</span>
+              </div>
+              <p className="text-xs text-slate-300 font-normal mt-2.5 leading-relaxed">
+                Don't guess stocks. An Index SIP automatically puts your money into India's top 50 corporate giants (Tata, Reliance, Infosys, HDFC). Historically delivers <strong>~12% – 14% CAGR</strong> over 5+ years.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-white/10 text-[11px] text-teal-300 font-semibold">
+              ✓ Start with ₹500/mo • Beating Inflation
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="bg-white/10 border border-white/15 rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-md">
+                  Step 3 • 15% Share
+                </span>
+                <span className="text-[10px] font-bold text-amber-200">Tax-Free & Hedge</span>
+              </div>
+              <h3 className="text-base font-extrabold text-white">
+                PPF or Digital Gold
+              </h3>
+              <div className="text-xl font-black text-amber-300 mt-1">
+                ₹{Math.round(starterSavings * 0.15).toLocaleString('en-IN')}
+                <span className="text-xs font-medium text-slate-300 ml-1">/ month</span>
+              </div>
+              <p className="text-xs text-slate-300 font-normal mt-2.5 leading-relaxed">
+                Public Provident Fund (PPF) gives <strong>7.1% tax-free interest (EEE)</strong> backed by the Government of India. Or keep 15% in Digital Gold to hedge against rising prices.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-white/10 text-[11px] text-amber-300 font-semibold">
+              ✓ Sovereign Guarantee • Zero Market Stress
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Golden Rules for Beginners */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4.5">
+          <div className="text-xs font-bold text-teal-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Sparkles size={14} />
+            3 Golden Rules for First-Time Savers
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
+            <div>
+              <span className="font-bold text-white block mb-0.5">1. Pay Yourself First</span>
+              Auto-debit your savings on the 1st of every month right after salary arrives, before spending on shopping.
+            </div>
+            <div>
+              <span className="font-bold text-white block mb-0.5">2. Consistency Over Amount</span>
+              Saving ₹1,000 every month for 5 years beats trying to save a big lump-sum once. Habit creates wealth.
+            </div>
+            <div>
+              <span className="font-bold text-white block mb-0.5">3. Avoid Penny Stock Tips</span>
+              Never gamble beginner savings on risky intraday tips, futures, or crypto. Stick to Index Funds & RD.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

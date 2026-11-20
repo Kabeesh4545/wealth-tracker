@@ -222,10 +222,60 @@ export default function FinancialSimulator() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left column: Setup overrides */}
         <div className="lg:col-span-5 premium-card bg-white p-5 rounded-2xl border border-slate-100 shadow-md">
-          <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
             <Layers size={18} className="text-teal-500" />
             Configure Hypothetical Scenario
           </h2>
+
+          {/* 1-Tap Life Event Presets */}
+          <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 mb-5 space-y-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles size={13} className="text-teal-600" />
+              1-Tap Life Event Scenarios:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setScenarioType('salary_change');
+                  setFormData(prev => ({ ...prev, new_salary: '55000' }));
+                }}
+                className="text-[11px] font-bold bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-700 border border-slate-200 hover:border-teal-300 px-2.5 py-1 rounded-lg cursor-pointer transition-all shadow-2xs"
+              >
+                🚀 +15% Salary Hike
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScenarioType('expense_change');
+                  setFormData(prev => ({ ...prev, category: 'Housing', subcategory: 'Rent', new_monthly_amount: '12000' }));
+                }}
+                className="text-[11px] font-bold bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-700 border border-slate-200 hover:border-amber-300 px-2.5 py-1 rounded-lg cursor-pointer transition-all shadow-2xs"
+              >
+                🏠 Higher Rent (+₹3k)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScenarioType('expense_change');
+                  setFormData(prev => ({ ...prev, category: 'Lifestyle', subcategory: 'Eating Outside', new_monthly_amount: '2000' }));
+                }}
+                className="text-[11px] font-bold bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 px-2.5 py-1 rounded-lg cursor-pointer transition-all shadow-2xs"
+              >
+                ☕ Cut Dining Out (₹2k)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScenarioType('savings_change');
+                  setFormData(prev => ({ ...prev, new_monthly_savings: '8000' }));
+                }}
+                className="text-[11px] font-bold bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 px-2.5 py-1 rounded-lg cursor-pointer transition-all shadow-2xs"
+              >
+                💰 Boost Savings to ₹8k
+              </button>
+            </div>
+          </div>
 
           <form onSubmit={handleRunSimulation} className="space-y-5">
             <div>

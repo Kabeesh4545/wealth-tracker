@@ -10,12 +10,12 @@ export default function FinancialAssistant() {
   const chatEndRef = useRef(null);
 
   const suggestedQuestions = [
-    "Explain my financial plan",
-    "Why is my cash flow this way?",
-    "How can I improve my emergency fund?",
-    "How am I progressing toward my goals?",
-    "Explain my investment allocation",
-    "What happens if I reduce my expenses?"
+    "I have no savings idea, how much should I save?",
+    "Where should a beginner start investing with ₹500?",
+    "Explain my Spend vs Save vs Invest limits",
+    "How can I build an emergency fund faster?",
+    "Why should I pick an Index Fund over stocks?",
+    "What happens if I reduce my lifestyle expenses?"
   ];
 
   useEffect(() => {

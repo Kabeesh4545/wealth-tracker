@@ -81,6 +81,36 @@ export default function DataSourcesDashboard() {
           </div>
         </div>
 
+        {/* TRUST & BENCHMARK TRANSPARENCY CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-indigo-50/60 to-white border border-indigo-100 p-4.5 rounded-2xl">
+            <div className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span>📍</span> Regional Living Benchmarks
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Living cost baselines calibrated for Coimbatore, Chennai, Bengaluru, and Indian metro/tier-2 hubs covering local rent, food, and fuel prices.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-100 p-4.5 rounded-2xl">
+            <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span>🏦</span> RBI & Institutional Rates
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Current RBI Repo Rate (6.5%), scheduled bank FD benchmarks (6.8%–7.5%), and PPF sovereign rates (7.1% EEE) updated directly.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-teal-50/60 to-white border border-teal-100 p-4.5 rounded-2xl">
+            <div className="text-xs font-bold text-teal-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span>🔒</span> Privacy & Data Guarantee
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Zero data sharing. Your salary, loans, and personal expenses are encrypted and never sold to credit card callers or loan brokers.
+            </p>
+          </div>
+        </div>
+
         {/* Data Sources Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-medium text-slate-600">
