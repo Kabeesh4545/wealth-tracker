@@ -231,8 +231,8 @@ if os.path.exists(dist_dir):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        # Don't intercept API endpoints or docs
-        if full_path.startswith(("api", "docs", "redoc", "openapi.json", "health", "ready")):
+        # Don't intercept API endpoints or docs or static assets
+        if full_path.startswith(("api", "docs", "redoc", "openapi.json", "health", "ready", "assets")):
             raise HTTPException(status_code=404, detail="Not Found")
         file_path = os.path.join(dist_dir, full_path)
         if os.path.isfile(file_path):

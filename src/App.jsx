@@ -114,6 +114,49 @@ const initialFormData = {
   }
 };
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="max-w-md mx-auto my-12 p-8 bg-white border border-rose-100 rounded-3xl shadow-xl text-center">
+          <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
+            <AlertCircle size={28} />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-1">View Unavailable</h2>
+          <p className="text-slate-500 text-xs mb-6 leading-relaxed">
+            {this.state.error?.message || "An unexpected error occurred while loading this view."}
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
+              className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-colors"
+            >
+              Reload Page
+            </button>
+            <button
+              onClick={() => { this.setState({ hasError: false }); }}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+            >
+              Reset View
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [formData, setFormData] = useState(initialFormData);
   const [currentStep, setCurrentStep] = useState(1); // 1 = Intro, 11 = Success
@@ -1058,15 +1101,17 @@ export default function App() {
         ) : view === 'dashboard' ? (
           <>
             {renderNavigationTabs('dashboard')}
-            <FinancialDashboard
-              onEditProfile={() => { setView('onboarding'); setCurrentStep(10); }}
-              onNavigate={(v, goalId) => {
-                if (goalId) {
-                  setSelectedGoalId(goalId);
-                }
-                setView(v);
-              }}
-            />
+            <ErrorBoundary key="dashboard">
+              <FinancialDashboard
+                onEditProfile={() => { setView('onboarding'); setCurrentStep(10); }}
+                onNavigate={(v, goalId) => {
+                  if (goalId) {
+                    setSelectedGoalId(goalId);
+                  }
+                  setView(v);
+                }}
+              />
+            </ErrorBoundary>
           </>
         ) : view === 'plan' ? (
           <>
