@@ -26,7 +26,8 @@ import {
   CreditCard,
   Coffee,
   HeartPulse,
-  GraduationCap
+  GraduationCap,
+  Layers
 } from 'lucide-react';
 import {
   PieChart,
@@ -58,19 +59,38 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
     setError('');
     try {
       const [planRes, allocRes, goalsRes, budgetRes] = await Promise.all([
-        api.get('/api/planning/monthly-plan'),
-        api.get('/api/planning/investment-allocation'),
+        api.get('/api/planning/monthly-plan').catch(err => {
+          console.error("monthly-plan error:", err);
+          return { data: null };
+        }),
+        api.get('/api/planning/investment-allocation').catch(err => {
+          console.error("investment-allocation error:", err);
+          return { data: null };
+        }),
         api.get('/api/goals/progress').catch(() => ({ data: [] })),
         api.get('/api/planning/monthly-budget').catch(() => ({ data: null }))
       ]);
+
+      if (!planRes.data) {
+        throw new Error("Unable to load financial plan metrics. Please complete or refresh your profile.");
+      }
+
       setPlan(planRes.data);
-      setAllocation(allocRes.data);
+      setAllocation(allocRes.data || {
+        investment_capacity: 0,
+        allocation_status: 'paused',
+        allocations: [],
+        warnings: [],
+        profile: { risk_tolerance: 'Moderate', horizon: '5+ years', preference: 'Balanced Growth' },
+        disclaimer: 'Investment suggestions are for educational guidance.'
+      });
       setGoalsProgress(goalsRes.data || []);
       setBudget(budgetRes?.data || null);
     } catch (err) {
       console.error("Error loading dashboard data:", err);
       setError(
         err.response?.data?.detail || 
+        err.message ||
         'Unable to load your financial dashboard. Please try again.'
       );
     } finally {
@@ -106,7 +126,7 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
     );
   }
 
-  if (!plan || !allocation) return null;
+  if (!plan) return null;
 
   // Format helper for Indian Rupee
   const formatINR = (val) => {
@@ -605,18 +625,20 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
 
             {/* Category-by-Category Limits Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              {categoryLimitsList.map((cat, idx) => (
-                <div key={idx} className="bg-slate-50/60 border border-slate-100 hover:border-slate-200 rounded-2xl p-4 flex flex-col justify-between transition-all">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <cat.icon size={15} className={cat.color} />
-                        {cat.name}
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
-                        {cat.group}
-                      </span>
-                    </div>
+              {categoryLimitsList.map((cat, idx) => {
+                const IconComponent = cat.icon || Coffee;
+                return (
+                  <div key={idx} className="bg-slate-50/60 border border-slate-100 hover:border-slate-200 rounded-2xl p-4 flex flex-col justify-between transition-all">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <IconComponent size={15} className={cat.color} />
+                          {cat.name}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
+                          {cat.group}
+                        </span>
+                      </div>
 
                     <div className="text-lg font-black text-slate-900 mt-1">
                       ₹{cat.recommended.toLocaleString('en-IN')}
@@ -635,8 +657,9 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
           </div>
 
           {/* Interactive Feature Quick Spotlight Cards */}
@@ -947,9 +970,9 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">High-level distribution based on suitability engine constraints</p>
           </div>
           <div className="flex flex-wrap gap-2 text-[10px] font-bold text-slate-500">
-            <span className="px-2 py-0.5 border rounded-lg bg-slate-50">Risk: {allocation.profile.risk_tolerance}</span>
-            <span className="px-2 py-0.5 border rounded-lg bg-slate-50">Horizon: {allocation.profile.horizon}</span>
-            <span className="px-2 py-0.5 border rounded-lg bg-slate-50">Pref: {allocation.profile.preference}</span>
+            <span className="px-2 py-0.5 border rounded-lg bg-slate-50">Risk: {allocation?.profile?.risk_tolerance || 'Moderate'}</span>
+            <span className="px-2 py-0.5 border rounded-lg bg-slate-50">Horizon: {allocation?.profile?.horizon || '5+ years'}</span>
+            <span className="px-2 py-0.5 border rounded-lg bg-slate-50">Pref: {allocation?.profile?.preference || 'Balanced'}</span>
           </div>
         </div>
 
@@ -1014,7 +1037,7 @@ export default function FinancialDashboard({ onEditProfile, onNavigate }) {
                   </p>
                 </div>
               ))}
-            </div>
+          </div>
           </div>
         )}
       </div>
