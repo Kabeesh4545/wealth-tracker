@@ -38,9 +38,12 @@ export default function FinancialPlan({ onEditProfile }) {
       setAllocation(allocRes.data);
     } catch (err) {
       console.error("Error loading financial planning data:", err);
+      const isNetworkIssue = !err.response || err.code === 'ECONNABORTED' || err.message?.includes('Network Error') || err.message?.includes('timeout');
       setError(
         err.response?.data?.detail || 
-        'Unable to generate your financial plan. Please try again.'
+        (isNetworkIssue 
+          ? 'Network or tunnel connection interrupted. The server link may have refreshed — please tap Try Again.' 
+          : 'Unable to generate your financial plan. Please verify your onboarding details and try again.')
       );
     } finally {
       setLoading(false);
