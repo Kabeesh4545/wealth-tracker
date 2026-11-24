@@ -1,1 +1,1 @@
-# Antigravity Money App Package
+# Wealth Tracker App Package

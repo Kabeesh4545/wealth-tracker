@@ -10,6 +10,8 @@ import GoalDetailsView from './components/goals/GoalDetailsView';
 import FinancialSimulator from './components/simulator/FinancialSimulator';
 import FinancialAssistant from './components/assistant/FinancialAssistant';
 import DataSourcesDashboard from './components/dashboard/DataSourcesDashboard';
+import MarketTrendsView from './components/market/MarketTrendsView';
+import MarketTickerBar from './components/market/MarketTickerBar';
 import {
   IndianRupee,
   ArrowRight,
@@ -178,6 +180,13 @@ export default function App() {
           className={`px-4 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0 ${activeTab === 'dashboard' ? 'bg-teal-600 text-white shadow-md shadow-teal-600/10' : 'bg-white border border-slate-200 hover:border-slate-300'}`}
         >
           Analytics Dashboard
+        </button>
+        <button
+          onClick={() => setView('market-trends')}
+          className={`px-4 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 ${activeTab === 'market-trends' ? 'bg-teal-600 text-white shadow-md shadow-teal-600/10' : 'bg-white border border-slate-200 hover:border-slate-300'}`}
+        >
+          <TrendingUp size={13} className={activeTab === 'market-trends' ? 'text-white' : 'text-teal-600'} />
+          <span>Market Trends (24/7)</span>
         </button>
         <button
           onClick={() => setView('plan')}
@@ -836,7 +845,7 @@ export default function App() {
             <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-teal-500/20">
               ₹
             </div>
-            <span className="font-semibold text-slate-800 text-lg tracking-tight">Antigravity Money</span>
+            <span className="font-semibold text-slate-800 text-lg tracking-tight">Wealth Tracker</span>
           </div>
           <div className="flex items-center gap-4">
             {isAuthenticated && currentUser && (
@@ -859,6 +868,9 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* 24/7 Live Market Ticker Tape */}
+      <MarketTickerBar onNavigate={(v) => setView(v)} />
 
       {/* Main container */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 pb-24 md:pb-8 flex flex-col justify-center">
@@ -1093,10 +1105,12 @@ export default function App() {
         ) : view === 'plan-ready' ? (
           <>
             {renderNavigationTabs('plan-ready')}
-            <FinancialPlanReady 
-              onNavigate={(v) => setView(v)} 
-              onEditProfile={() => { setView('onboarding'); setCurrentStep(10); }} 
-            />
+            <ErrorBoundary key="plan-ready">
+              <FinancialPlanReady 
+                onNavigate={(v) => setView(v)} 
+                onEditProfile={() => { setView('onboarding'); setCurrentStep(10); }} 
+              />
+            </ErrorBoundary>
           </>
         ) : view === 'dashboard' ? (
           <>
@@ -1113,35 +1127,54 @@ export default function App() {
               />
             </ErrorBoundary>
           </>
+        ) : view === 'market-trends' ? (
+          <>
+            {renderNavigationTabs('market-trends')}
+            <ErrorBoundary key="market-trends">
+              <MarketTrendsView onNavigate={(v) => setView(v)} />
+            </ErrorBoundary>
+          </>
         ) : view === 'plan' ? (
           <>
             {renderNavigationTabs('plan')}
-            <FinancialPlan onEditProfile={() => { setView('onboarding'); setCurrentStep(10); }} />
+            <ErrorBoundary key="plan">
+              <FinancialPlan onEditProfile={() => { setView('onboarding'); setCurrentStep(10); }} />
+            </ErrorBoundary>
           </>
         ) : view === 'expenses' ? (
           <>
             {renderNavigationTabs('expenses')}
-            <ExpenseTracker />
+            <ErrorBoundary key="expenses">
+              <ExpenseTracker />
+            </ErrorBoundary>
           </>
         ) : view === 'goals' ? (
           <>
             {renderNavigationTabs('goals')}
-            <GoalDetailsView initialSelectedGoalId={selectedGoalId} />
+            <ErrorBoundary key="goals">
+              <GoalDetailsView initialSelectedGoalId={selectedGoalId} />
+            </ErrorBoundary>
           </>
         ) : view === 'simulator' ? (
           <>
             {renderNavigationTabs('simulator')}
-            <FinancialSimulator />
+            <ErrorBoundary key="simulator">
+              <FinancialSimulator />
+            </ErrorBoundary>
           </>
         ) : view === 'assistant' ? (
           <>
             {renderNavigationTabs('assistant')}
-            <FinancialAssistant />
+            <ErrorBoundary key="assistant">
+              <FinancialAssistant />
+            </ErrorBoundary>
           </>
         ) : view === 'data-sources' ? (
           <>
             {renderNavigationTabs('data-sources')}
-            <DataSourcesDashboard />
+            <ErrorBoundary key="data-sources">
+              <DataSourcesDashboard />
+            </ErrorBoundary>
           </>
         ) : (
           /* AUTHENTICATED QUESTIONNAIRE FLOW */
@@ -2275,7 +2308,7 @@ export default function App() {
 
       {/* Footer copyright */}
       <footer className="py-6 border-t border-slate-100 bg-white text-center text-xs text-slate-400 font-medium">
-        &copy; {new Date().getFullYear()} Antigravity Money. All rights reserved.
+        &copy; {new Date().getFullYear()} Wealth Tracker. All rights reserved.
       </footer>
 
       {/* Sticky Mobile Bottom Navigation Bar */}
@@ -2299,6 +2332,16 @@ export default function App() {
           >
             <BarChart2 size={18} />
             <span className="text-[10px]">Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => setView('market-trends')}
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl cursor-pointer transition-colors ${
+              view === 'market-trends' ? 'text-teal-600 font-bold' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <TrendingUp size={18} />
+            <span className="text-[10px]">Market</span>
           </button>
 
           <button

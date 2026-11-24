@@ -1,7 +1,7 @@
 @echo off
-title Antigravity Money - Full-Stack Server & Resilient Tunnel
+title Wealth Tracker - Full-Stack Server & Resilient Tunnel
 echo ================================================================
-echo   Antigravity Money - Full-Stack Production Server
+echo   Wealth Tracker - Full-Stack Production Server
 echo ================================================================
 echo.
 

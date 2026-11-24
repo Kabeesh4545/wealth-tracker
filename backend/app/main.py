@@ -50,12 +50,13 @@ from app.routers import (
     planning_router,
     investment_allocation_router,
     financial_simulator_router,
-    financial_assistant_router
+    financial_assistant_router,
+    market_trends_router
 )
 
 app = FastAPI(
-    title="Antigravity Money - API Backend",
-    description="Production-quality FastAPI + PostgreSQL backend for storing user financial onboarding data.",
+    title="Wealth Tracker - API Backend",
+    description="Production-quality FastAPI backend for Wealth Tracker personal finance and live 24/7 market trend intelligence.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -104,8 +105,8 @@ async def add_security_headers_and_correlation(request, call_next):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         
-        # Restrictive CSP (Section 7)
-        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
+        # Restrictive CSP with support for modern SPA styling and charts
+        response.headers["Content-Security-Policy"] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-ancestors 'none';"
         
         # Cache-Control Security Header for sensitive APIs (Section 6)
         sensitive_paths = [
@@ -206,6 +207,7 @@ app.include_router(planning_router)
 app.include_router(investment_allocation_router)
 app.include_router(financial_simulator_router)
 app.include_router(financial_assistant_router)
+app.include_router(market_trends_router)
 
 @app.get("/health", tags=["Health Check"])
 def health_check():
@@ -246,6 +248,6 @@ def read_root():
         return FileResponse(dist_index)
     return {
         "status": "healthy",
-        "message": "Antigravity Money Onboarding API is running.",
+        "message": "Wealth Tracker API is running.",
         "docs": "/docs"
     }

@@ -13,3 +13,4 @@ from app.routers.financial_planning import router as planning_router
 from app.routers.investment_allocation import router as investment_allocation_router
 from app.routers.financial_simulator import router as financial_simulator_router
 from app.routers.financial_assistant import router as financial_assistant_router
+from app.routers.market_trends import router as market_trends_router

@@ -151,7 +151,7 @@ export default function FinancialPlanningGuide({ onNavigate }) {
                 <h4 className="font-bold text-slate-800 text-sm md:text-base">Calculate Your True "Planning Income"</h4>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed font-semibold">
-                Never budget around your gross offer letter or optimistic bonuses. The Antigravity engine calculates your 
+                Never budget around your gross offer letter or optimistic bonuses. The Wealth Tracker engine calculates your 
                 <strong> Planning Income</strong> as:
               </p>
               <div className="bg-white border border-slate-200 p-3.5 rounded-xl font-mono text-xs text-teal-800 font-bold">
