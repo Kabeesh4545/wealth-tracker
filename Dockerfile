@@ -35,5 +35,5 @@ WORKDIR /app/backend
 # Expose default port
 EXPOSE 8000
 
-# Start Uvicorn bound to dynamic PORT environment variable (compatible with Render, Railway, Koyeb, Fly.io)
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run migrations, seed initial data, and start Uvicorn
+CMD ["python", "start.py"]
