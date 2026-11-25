@@ -3,8 +3,9 @@ services:
   - type: web
     name: wealth-tracker
     env: docker
-    dockerfilePath: ./Dockerfile
+    region: oregon
     plan: free
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: ENVIRONMENT
         value: production
@@ -23,4 +24,5 @@ databases:
   - name: wealth-tracker-db
     databaseName: wealth_tracker
     user: postgres
+    region: oregon
     plan: free
