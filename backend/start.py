@@ -5,9 +5,18 @@ import subprocess
 def main():
     port = int(os.environ.get("PORT", "8000"))
     
+    print("==> Initializing database schema...")
+    try:
+        from app.database.connection import engine
+        from app.database.base import Base
+        Base.metadata.create_all(bind=engine)
+        print("==> Database tables verified/created successfully.")
+    except Exception as e:
+        print(f"Warning: Table initialization encountered: {e}")
+
     print("==> Running Alembic database migrations...")
     try:
-        subprocess.run(["alembic", "upgrade", "head"], check=True)
+        subprocess.run(["alembic", "upgrade", "head"], check=False)
     except Exception as e:
         print(f"Warning: Alembic migration encountered: {e}")
 

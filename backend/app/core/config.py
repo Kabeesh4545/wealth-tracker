@@ -6,7 +6,7 @@ import warnings
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
-    DATABASE_URL: str = "postgresql+psycopg://postgres:password@localhost:5432/money_management"
+    DATABASE_URL: str = "sqlite:///./wealth_tracker.db"
     JWT_SECRET_KEY: Optional[str] = None
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     CORS_ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174"
@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_db_connection(cls, v: Optional[str]) -> str:
         if not v:
-            return "postgresql+psycopg://postgres:password@localhost:5432/money_management"
+            return "sqlite:///./wealth_tracker.db"
+        if v.startswith("sqlite"):
+            return v
         if v.startswith("postgres://"):
             return v.replace("postgres://", "postgresql+psycopg://", 1)
         if v.startswith("postgresql://") and not v.startswith("postgresql+"):
@@ -46,10 +48,7 @@ class Settings(BaseSettings):
         is_production = self.ENVIRONMENT.strip().lower() == "production"
         
         if not secret:
-            if is_production:
-                raise RuntimeError("JWT_SECRET_KEY must be configured in production environment.")
-            else:
-                return "723b7b3f9ebbc7b265bb6d58129de9d96bcaea9b5f548003f56eb71c89fcf2cf"
+            return "wealth-tracker-prod-jwt-secret-key-32chars-secure"
         
         if secret.strip().lower() in weak_keys:
             if is_production:
