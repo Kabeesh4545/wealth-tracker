@@ -1,6 +1,6 @@
-# AI-Powered Personalized Money Management Application
+# Wealth Tracker — AI-Powered Personal Finance & 24/7 Market Trends
 
-A production-ready personal financial assistant and management system that integrates dynamic financial planning algorithms, regional cost-of-living intelligence, savings & investment allocation suitability engines, an interactive stateless scenario simulator, and an explanatory AI layer.
+A full-stack personal wealth tracking and financial intelligence platform that combines deterministic budgeting algorithms, regional cost-of-living intelligence, 24/7 live stock & market trend analysis, savings & investment suitability engines, an interactive what-if simulator, and an explanatory AI layer.
 
 ---
 
@@ -19,7 +19,15 @@ Generic financial planning strategies (like the 50/30/20 rule) fail to account f
 - **Secure AI Assistance**: Provide conversational, natural language explanations of backend calculations with strict data isolation.
 - **Security & isolation**: Maintain least-privilege database profiles and protect API resources against IDOR, injection, and parameter tampering.
 
-## 4. Technology Stack
+## 4. Key Highlights & Features
+- **24/7 Live Market Trends Feed**: Real-time market data across 17 benchmark Indian indices (NIFTY 50, SENSEX, BANK NIFTY), global indices (S&P 500), commodities (Gold & Silver BeES), and top bluechips. Automatically detects active trading hours vs. after-market LTP with 60s in-memory caching and 0-downtime fallback.
+- **Personalized Financial Action Plan**: Explainable monthly budgeting with emergency fund scoring, local benchmark cost comparisons, and debt-to-income analysis.
+- **Analytics & Expense Tracker**: Multi-category expense tracking, historical analytics, and automated Safe-to-Spend limits.
+- **Interactive What-If Simulator**: Stateless zero-mutation scenario modeling for salary hikes, rent changes, new loans, or investment shifts.
+- **AI Financial Coach**: Context-aware natural language assistant explaining calculations and budget tradeoffs.
+- **Multi-Stage Docker & Cloud Ready**: Production-ready container serving Vite React frontend and FastAPI backend in a single unified service.
+
+## 5. Technology Stack
 
 ### Frontend
 - **Framework**: React 19 (JavaScript)
